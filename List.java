@@ -109,14 +109,26 @@ class List {
 
   void remove (int index) {
     moveTo(index);
-    if (pos != 0) cur.prev.next = cur.next;
-    else if (pos != length() - 1) cur.next.prev = cur.prev;
+    size--;
+    if (pos != 0) {
+      cur.prev.next = cur.next;
+    } else {
+      head = head.next;
+      head.prev = null;
+    }
+    if (pos != length() - 1) {
+      cur.next.prev = cur.prev;
+    } else {
+      tail = tail.prev;
+      tail.next = null;
+    }
     cur = null;
     pos = -1;
   }
 
   void remove (Object data) {
     moveTo(0);
+    size--;
     // do this
   }
 }
