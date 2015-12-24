@@ -109,8 +109,8 @@ class List {
 
   void remove (int index) {
     moveTo(index);
-    cur.prev.next = cur.next;
-    cur.next.prev = cur.prev;
+    if (pos != 0) cur.prev.next = cur.next;
+    else if (pos != length() - 1) cur.next.prev = cur.prev;
     cur = null;
     pos = -1;
   }
