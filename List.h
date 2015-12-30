@@ -33,7 +33,7 @@ void listDestroy(List *l);
 
 void listAppend(List *l, char *sdir);
 
-List *listCopy(List *l); //buggy
+List *listCopy(List *l);
 
 void deleteNode(List *l, Node *n);
 

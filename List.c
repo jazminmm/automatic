@@ -72,12 +72,14 @@ void listAppend(List *l, char *sdir) {
   temp->sdir = temps;
 }
 
-List *listCopy(List *l) { //buggy
+List *listCopy(List *l) {
   List *n = malloc(sizeof(List));
+  n->first = NULL;
+  n->last = NULL;
   if (!listGetSize(l)) return n;
   Node *temp = l->first;
   while (temp) {
-    listAppend(n, temp->sdir, temp->graded);
+    listAppend(n, temp->sdir);
   }
   return n;
 }
