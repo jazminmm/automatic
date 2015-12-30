@@ -32,15 +32,15 @@ int main(int argc, char **argv) {
   debugPrint("cwd: %s", cwd);
   int i;
   char* classId = strtok(cwd, "/"); // afs
-  char* root = sprintf("/%s", classId);
-  chdir("/afs");
+  //char* root = sprintf("/%s", classId);
+  //chdir("/afs");
   for(i = 0; i < 3; i++) {
     // 0: cats.ucsc.edu
     // 1: class
     // 2: classdir
     classId = strtok(NULL, "/");
     debugPrint("cwd[%d]: %s", i, classId);
-    chdir(classId);
+    //chdir(classId);
   }
   autoPrint("Opening class directory %s", classId);
 
