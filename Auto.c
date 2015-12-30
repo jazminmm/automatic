@@ -422,7 +422,7 @@ void testGrade(char *dir) {
   char temps[501];
   char temps1[501];
   char mode = '2';
-  List *l = listCreate(fl, filecount, dir, 2);
+  List *l = listCreate(fileList, 2);
   List *ltemp = NULL;
   if (!l) {
     printf("Error compiling list");
@@ -462,7 +462,7 @@ void testGrade(char *dir) {
         printf("Enter a mode: 0 for ungraded, 1 for graded, 2 for mixed: ");
         mode = getchar();
       } while(mode < 48 || mode > 50);
-      ltemp = listCreate(fl, filecount, dir, (int) mode - 48);
+      ltemp = listCreate(fileList, (int) mode - 48);
       if (!ltemp) {
         printf("%s mode has has no directories, try %s mode or mixed mode\n", mode == 48 ? "ungraded" : "graded", mode == 49 ? "ungraded" : "graded");
       } else {
