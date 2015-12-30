@@ -3,19 +3,21 @@
 # Makefile for compiling the automatic grading utility called Auto
 
 SRC = Auto.c List.c
-DEP = List.h Extra.h
-OBJ = Auto.o List.o
+DEP = $(SRC:.c=.h) Extra.h
+OBJ = $(SRC:.c=.o)
 EXE = Auto
 EFLAGS = valgrind
 DIR = pa1
 CFLAGS = -c -Wall -Werror -Wextra -std=c99
+CFLAGS = -c -Wall -Wextra -std=c99
 COMP = gcc
-LFLAGS = -o -lm
+LFLAGS = -o
+ELFLAGS = -lm
 LINK = gcc
 
 #compile the executable
 $(EXE) : $(OBJ)
-	$(LINK) $(LFLAGS) $@ $(MAN) $^
+	$(LINK) $(LFLAGS) $@ $(MAN) $^ $(ELFLAGS)
 	#chmod +x $@
 
 #compile the object files
@@ -45,5 +47,12 @@ clean :
 spotless : clean
 	rm -f $(EXE)
 
-.PHONY: clean spotless
+# Git stuff
+commit : spotless
+	git add --all
+	git $@
 
+push : commit
+	git $@
+
+.PHONY: clean spotless commit push
