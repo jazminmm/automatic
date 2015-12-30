@@ -6,88 +6,12 @@
 
 #include "List.h"
 
-List *listCreate(char **dirl, int ndir, char *path, int graded) {
-  char temps[500];
-  FILE *fp;
-  int total = 0;
-  List *n = malloc(sizeof(List));
-  Node *temp = malloc(sizeof(Node));
-  total++;
-  temp->prev = NULL;
-  n->graded = graded;
-  n->first = NULL;
-  int j = 2; // skip "." and ".."
-  while(!n->first && j < ndir) {
-    //    printf("test1\n");
-    temp->sdir = dirl[j];
-    sprintf(temps, "/afs/cats.ucsc.edu/class/cmps012b-pt.w15/%s/%s/grade.txt", path, temp->sdir);
-    fp = fopen(temps, "r"); //check whether or not a directory is graded
-    temp->graded = fp ? 1 : 0;
-    if ((fp && n->graded == 1) || (!fp && n->graded == 0) || (n->graded == 2)) {
-      n->first = temp; //if we are done checking conditions then we may move onto the next nodes
-    }
-    if (fp) fclose(fp);
-    if (j + 1 < ndir - 1) {
-      j++; // don't increment j if dirl[j+1] doesn't exist
-    }
-    else if ((temp->graded == 0 && n->graded == 1) || (temp->graded == 1 && n->graded == 0)) {
-      free(temp);
-      total--;
-      free(n);
-      return NULL;
-    }
+//d is the struct dirent and ndir is the number of items in the struct
+List *listCreate(struct dirent **d, int ndir) {
+  List *l = malloc(sizeof(List));
+  for (int i = 2; i < ndir; i++) {
+    listAppend(l, d[i]->d_name);
   }
-  if (j + 1 == ndir) {
-    n->last = temp;
-    return n;
-  }
-  for (int i = j; i < ndir - 1; i++) {
-    //    printf("test2\n");
-    temp->next = malloc(sizeof(Node));
-    total++;
-    temp->next->prev = temp;
-    temp = temp->next;
-    while(i < ndir - 1) {
-      temp->sdir = dirl[i]; // recall that the first two directories are "." and then ".."
-      //printf("testing: %s\n", dirl[i]);
-      sprintf(temps, "/afs/cats.ucsc.edu/class/cmps012b-pt.w15/%s/%s/grade.txt", path, temp->sdir);
-      fp = fopen(temps, "r"); //once again we are checking if the directory is graded
-      temp->graded = fp ? 1 : 0;
-      if ((fp && n->graded == 1) || (!fp && n->graded == 0) || n->graded == 2) {
-        if (fp) fclose(fp);
-        break;
-      }
-      if (fp) fclose(fp);
-      i++;
-    }
-    //printf("testing directory currently is: %s\n", temp->sdir);
-  }
-  if ((temp->graded == 0 && n->graded == 1) || (temp->graded == 1 && n->graded == 0)) { // special way of dealing with not needing a node, instead of deleting and recreating later, we reuse
-    temp = temp->prev;
-    free(temp->next);
-    total--;
-  }
-  j = ndir - 1;
-  temp->next = malloc(sizeof(Node));
-  temp->next->prev = temp;
-  total++;
-  temp = temp->next;
-  temp->sdir = dirl[j];
-  sprintf(temps, "/afs/cats.ucsc.edu/class/cmps012b-pt.w15/%s/%s/grade.txt", path, temp->sdir);
-  fp = fopen(temps, "r");
-  temp->graded = fp ? 1 : 0;
-  if ((fp && n->graded == 1) || (!fp && n->graded == 0) || n->graded == 2) {
-    n->last = temp;
-    temp->next = NULL;
-  } else {
-    n->last = temp->prev;
-    n->last->next = NULL;
-    free(temp);
-    total--;
-  }
-  if (fp) fclose(fp);
-  //printf("Alloced %d nodes and a list\n", total);
-  return n;
 }
 
 void listPrint(List *l) {
@@ -129,7 +53,7 @@ void listDestroy(List *l) {
   //printf("freed %d Nodes and a list\n", total);
 }
 
-void listAppend(List *l, char *sdir, int graded) { //buggy
+void listAppend(List *l, char *sdir) { //buggy
   Node *temp = l->last;
   if (!temp) {
     l->first = malloc(sizeof(Node));

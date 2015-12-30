@@ -11,7 +11,6 @@
 
 typedef struct Node {
   char *sdir;
-  int graded; // 1 = yes, 0 = no
   struct Node *next;
   struct Node *prev;
 } Node;
@@ -19,20 +18,20 @@ typedef struct Node {
 typedef struct List {
   Node *first;
   Node *last;
-  int graded; //1 = yes, 0 = no, 2 - mixed
 } List;
 
-List *listCreate(char **dirl, int ndir, char *path, int graded);
+List *listCreate(struct dirent **d, int ndir);
 
 void listPrint(List *l);
 
 int listGetSize(List *l);
 
-int listGetPos(List *l);
+//d is the struct dirent and ndir is the number of items in the struct
+int listGetPos(List *l, Node *cur);
 
 void listDestroy(List *l);
 
-void listAppend(List *l, char *sdir, int graded); //buggy
+void listAppend(List *l, char *sdir);
 
 List *listCopy(List *l); //buggy
 
