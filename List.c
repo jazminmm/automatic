@@ -90,6 +90,7 @@ void deleteNode(List *l, Node *n) {
   if (n == l->last) l->last = (n->prev ? n->prev : NULL);
   if (n->prev) n->prev->next = n->next;
   if (n->next) n->next->prev = n->prev;
+  free(n->sdir);
   free(n);
 }
 
