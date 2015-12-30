@@ -10,7 +10,7 @@ EFLAGS = valgrind
 DIR = pa1
 CFLAGS = -c -Wall -Werror -Wextra -std=c99
 COMP = gcc
-LFLAGS = -o
+LFLAGS = -o -lm
 LINK = gcc
 
 #compile the executable
