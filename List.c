@@ -9,9 +9,9 @@
 //d is the struct dirent and ndir is the number of items in the struct
 List *listCreate(struct dirent **d, int ndir) {
   List *l = malloc(sizeof(List));
-  for (int i = 2; i < ndir; i++) {
-    listAppend(l, d[i]->d_name);
-  }
+  l->first = NULL;
+  l->last = NULL;
+  for (int i = 2; i < ndir; i++) listAppend(l, d[i]->d_name);
 }
 
 void listPrint(List *l) {
@@ -53,7 +53,7 @@ void listDestroy(List *l) {
   //printf("freed %d Nodes and a list\n", total);
 }
 
-void listAppend(List *l, char *sdir) { //buggy
+void listAppend(List *l, char *sdir) {
   Node *temp = l->last;
   if (!temp) {
     l->first = malloc(sizeof(Node));
@@ -67,10 +67,9 @@ void listAppend(List *l, char *sdir) { //buggy
     l->last = temp;
   }
   temp->next = NULL;
-  char temps[501];
+  char *temps = calloc(501, sizeof(char));
   strncpy(temps, sdir, 500);
   temp->sdir = temps;
-  temp->graded = graded;
 }
 
 List *listCopy(List *l) { //buggy
