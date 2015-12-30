@@ -2,7 +2,8 @@
 
 # Makefile for compiling the automatic grading utility called Auto
 
-SRC = Auto.c List.c List.h Extra.h
+SRC = Auto.c List.c
+DEP = List.h Extra.h
 OBJ = Auto.o List.o
 EXE = Auto
 EFLAGS = valgrind
@@ -18,8 +19,8 @@ $(EXE) : $(OBJ)
 	#chmod +x $@
 
 #compile the object files
-$(OBJ) : $(SRC)
-	$(COMP) $(CFLAGS) $^
+%.o : %.c $(DEP)
+	$(COMP) $(CFLAGS) $<
 
 #Email students their grades
 -m : $(EXE)
