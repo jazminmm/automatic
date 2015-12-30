@@ -6,6 +6,8 @@
 
 #include "List.h"
 
+void autoUsage();
+
 void autoGrade(char *dir);
 
 void sendMail(char *dir);

@@ -1,10 +1,84 @@
 /*
 
-  Auto.c
+   Auto.c
 
 */
 
 #include "Auto.h"
+#define DEBUG true
+#define debugPrint(format, args...) \
+  if(DEBUG) {\
+    printf("debug: ");\
+    printf(format, args);\
+    printf("\n");\
+  }
+#define autoPrint(format, args...) \
+  printf("auto: ");\
+printf(format, args);\
+printf("\n");
+
+char* exe = "auto";
+
+int main(int argc, char **argv) {
+
+  if(argc == 1) {
+    autoUsage();
+  }
+  char *asg = argv[argc - 1];
+
+  // Get classId (eg cmps012b-pt.s15)
+  char cwd[1024];
+  getcwd(cwd, sizeof(cwd));
+  debugPrint("cwd: %s", cwd);
+  int i;
+  char* classId = strtok(cwd, "/"); // afs
+  char* root = sprintf("/%s", classId);
+  chdir("/afs");
+  for(i = 0; i < 3; i++) {
+    // 0: cats.ucsc.edu
+    // 1: class
+    // 2: classdir
+    classId = strtok(NULL, "/");
+    debugPrint("cwd[%d]: %s", i, classId);
+    chdir(classId);
+  }
+  autoPrint("Opening class directory %s", classId);
+
+  // Get user info
+  uid_t uid = geteuid();
+  struct passwd *pw = getpwuid(uid);
+  char* graderId = pw->pw_name;
+  char* graderName = pw->pw_gecos;
+  autoPrint("Welcome %s <%s>", graderName, graderId);
+
+  // Check if asg exists
+  
+
+  /*
+     if (argc == 3) {
+     char *asg = argv[2];
+     char *method = argv[1];
+     if (strncmp(method, "-m", 3) == 0) sendMail(asg);
+     else if (strncmp(method, "-g", 3) == 0) getGrades(asg);
+     else if (strncmp(method, "-t", 3) == 0) testGrade(asg);
+     else if (strncmp(method, "-a", 3) == 0) autoGrade(asg);
+     else if (strncmp(method, "-b", 3) == 0) restoreGrades(asg);
+     else {
+     printf("Invalid method, Usage: [Method] [directory name for assignment]\n");
+     return 1;
+     }
+     } else {
+     printf("Usage: [Method] [directory name for assignment]\n");
+     return 1;
+     }
+     */
+  return 0;
+}
+
+void autoUsage() {
+  printf("Usage: %s [flags] asg\n", exe);
+  exit(1);
+}
 
 void autoGrade(char *dir) {
   //printf("This method is not yet ready\n");
@@ -82,11 +156,11 @@ void autoGrade(char *dir) {
     fprintf(fp, "Multi Target %s\n", (fp2 && fgetc(fp2) == EOF || fp3 && fgetc(fp3) == EOF) ? (fp2 && fgetc(fp2) == EOF ? "Normal Tests Passed" : "Special Tests Passed") : "Tests Failed");
     if (fp3 && feof(fp3)) scount = 1;
     if (scount) {
-    //  if (!fp4) fp4 = fopen("design.temp", "w");
+      //  if (!fp4) fp4 = fopen("design.temp", "w");
       fprintf(fp4, "-10 points - Program doesn't support line numbers\n\n");
     }
     if (!(fp2 && feof(fp2) || fp3 && feof(fp3))) {
-    //  if (!fp4) fp4 = fopen("design.temp", "w");
+      //  if (!fp4) fp4 = fopen("design.temp", "w");
       //fprintf(fp4, "-5 points - Program doesn't support variable arguments\n\n");
     }
     if (fp2) fclose(fp2);
@@ -96,51 +170,51 @@ void autoGrade(char *dir) {
     fp2 = fopen("Makefile", "r");
     fp3 = fopen("Search.java", "r");
     if (!fp || !fp2 || !fp3) {
-    //  if (!fp4) fp4 = fopen("design.temp", "w");
-    if (!fp) fprintf(fp4, "-3 points - Missing/incorrectly named file: README\n\n");
-    if (!fp2) fprintf(fp4, "-3 points - Missing/incorrectly named file: Makefile\n\n");
-    if (!fp3) fprintf(fp4, "-3 points - Missing/incorrectly named file: Search.java\n\n");
+      //  if (!fp4) fp4 = fopen("design.temp", "w");
+      if (!fp) fprintf(fp4, "-3 points - Missing/incorrectly named file: README\n\n");
+      if (!fp2) fprintf(fp4, "-3 points - Missing/incorrectly named file: Makefile\n\n");
+      if (!fp3) fprintf(fp4, "-3 points - Missing/incorrectly named file: Search.java\n\n");
     }
     if (fp) fclose(fp);
     if (fp2) fclose(fp2);
     if (fp3) fclose(fp3);
     if (fp4) fclose(fp4);
     /*fp2 = fopen("diff3", "r");
-    fprintf(fp, "Advanced Unit Tests %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
-    if (fp2 && fgetc(fp2) == EOF) diff++;
-    if (fp2) fclose(fp2);
-    fp2 = fopen("diff4", "r");
-    fprintf(fp, "Credibility Test %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
-    if (fp2 && fgetc(fp2) == EOF) diff++; 
-    if (fp2) fclose(fp2);*/
+      fprintf(fp, "Advanced Unit Tests %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
+      if (fp2 && fgetc(fp2) == EOF) diff++;
+      if (fp2) fclose(fp2);
+      fp2 = fopen("diff4", "r");
+      fprintf(fp, "Credibility Test %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
+      if (fp2 && fgetc(fp2) == EOF) diff++; 
+      if (fp2) fclose(fp2);*/
 
     /*
-    fp2 = fopen("diff5", "r");
-    fprintf(fp, "Test 5 %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
-    if (fp2 && fgetc(fp2) == EOF) diff++;
-    if (fp2) fclose(fp2);
-    fp2 = fopen("diff6", "r");
-    fprintf(fp, "\"make\" Test %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
-    if (fp2 && fgetc(fp2) == EOF) diff++;
-    if (fp2) fclose(fp2);
-    fp2 = fopen("diff7", "r");
-    fprintf(fp, "\"make submit\" Test %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
-    if (fp2 && fgetc(fp2) == EOF) diff++;
-    if (fp2) fclose(fp2);
-    fp2 = fopen("diff8", "r");
-    fprintf(fp, "\"make clean\" Test %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
-    if (fp2 && fgetc(fp2) == EOF) diff++; 
-    if (fp2) fclose(fp2);
-    */
+       fp2 = fopen("diff5", "r");
+       fprintf(fp, "Test 5 %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
+       if (fp2 && fgetc(fp2) == EOF) diff++;
+       if (fp2) fclose(fp2);
+       fp2 = fopen("diff6", "r");
+       fprintf(fp, "\"make\" Test %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
+       if (fp2 && fgetc(fp2) == EOF) diff++;
+       if (fp2) fclose(fp2);
+       fp2 = fopen("diff7", "r");
+       fprintf(fp, "\"make submit\" Test %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
+       if (fp2 && fgetc(fp2) == EOF) diff++;
+       if (fp2) fclose(fp2);
+       fp2 = fopen("diff8", "r");
+       fprintf(fp, "\"make clean\" Test %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
+       if (fp2 && fgetc(fp2) == EOF) diff++; 
+       if (fp2) fclose(fp2);
+       */
 
     /*if (0 && diff == 8) {
       fp = fopen("grade.txt", "r");
       if (!fp) {
-        fp = fopen("grade.txt", "w");
-        fprintf(fp, "\n\nAll Test Passed");
+      fp = fopen("grade.txt", "w");
+      fprintf(fp, "\n\nAll Test Passed");
       }
       fclose(fp);
-    }*/
+      }*/
     sprintf(temp, "rm %s", execfile);
     system(temp);
     system("rm -f *.class Search");
@@ -502,63 +576,63 @@ void testGrade(char *dir) {
       system("vi design.txt");
     } else if (strncmp(temps1, "-vgt", 5) == 0) {
       system("vi grade.txt");
-    //} else if (strncmp(temps1, "-pvgt", 6) == 0) {
-    //  fp = fopen("grade.txt", "w");
-    //  fprintf(fp, "%s points\n", (strncmp(dir, "pa3", 4) == 0 || strncmp(dir, "pa2", 4) == 0 || strncmp(dir, "pa1", 4)) ? "80/80" : "100/100");
-    //  fclose(fp);i
-    } else if (strncmp(temps1, "-vbt", 5) == 0) {
-      system("vi bugs.txt");
-    } else if (strncmp(temps1, "-c", 3) == 0) {
-      system("more tests.txt");
-      system("more *");
-      fp = fopen("bugs.txt", "r");
-      printf("%s", fp ? "::::::::::::::\nBUGS.TXT EXISTS!\n" : "");
-      if (fp) fclose(fp);
-    } else if (strncmp(temps1, "-cc", 4) == 0) {
-      system("more tests.txt bugs.txt performance.txt design.txt design.temp diff1 diff21 diff31 diff41 Search.java Makefile README tests.txt");
-    } else if (strncmp(temps1, "-ct", 4) == 0) {
-      system("more tests.txt");
-    } else if (strncmp(temps1, "-cm", 4) == 0) {
-      system("more Makefile");
-    } else if (strncmp(temps1, "-cd", 4) == 0) {
-      system("more diff*");
-    } else if (strncmp(temps1, "-cg", 4) == 0) {
-      system("more performance.txt design.txt");
-    } else if (strncmp(temps1, "-ce", 4) == 0) {
-      system("more Search.java");
-    } else if (strncmp(temps1, "-co", 4) == 0) {
-      system("more out*");
-    } else if (strncmp(temps1, "-pos", 5) == 0) {
-      printf("Your current position is %d out of %d\n", listGetPos(l, temp), listGetSize(l));
-    } else if (strncmp(temps1, "-ftr", 5) == 0) {
-      printf("Please enter the name of the text file you would like to filter for (add '!' to front of name to make it filter to directories without the file): ");
-      fgets(temps1, 500, stdin);
-      //printf("The thing being filtered is: %s which is size %d\n", temps1, strlen(temps1));
-      int tempint = listGetSize(l);
-      listFilter(l, dir, temps1);
-      if (tempint != listGetSize(l)) {
-        temp = l->first;
-        chdir("..");
-        chdir(temp->sdir);
-      }
-    } else if (strncmp(temps1, "-ft ", 4) == 0) {
-      //printf("Please enter the name of the text file you would like to filter for (add '!' to front of name to make it filter to directories without the file): ");
-      strncpy(temps, temps1 + 4, 500);
-      temps[strlen(temps)] = '\n';
-      temps[strlen(temps) + 1] = '\0';
-      //printf("The thing being filtered is: %s which is size %d\n", temps, strlen(temps));
-      int tempint = listGetSize(l);
-      listFilter(l, dir, temps);
-      if (tempint != listGetSize(l)) {
-        temp = l->first;
-        chdir("..");
-        chdir(temp->sdir);
-      }
-    } else {
-      //printList(l);
-      //printf("The size of the list is %d\n", listGetSize(l));
-      system(temps1);
+      //} else if (strncmp(temps1, "-pvgt", 6) == 0) {
+      //  fp = fopen("grade.txt", "w");
+      //  fprintf(fp, "%s points\n", (strncmp(dir, "pa3", 4) == 0 || strncmp(dir, "pa2", 4) == 0 || strncmp(dir, "pa1", 4)) ? "80/80" : "100/100");
+      //  fclose(fp);i
+  } else if (strncmp(temps1, "-vbt", 5) == 0) {
+    system("vi bugs.txt");
+  } else if (strncmp(temps1, "-c", 3) == 0) {
+    system("more tests.txt");
+    system("more *");
+    fp = fopen("bugs.txt", "r");
+    printf("%s", fp ? "::::::::::::::\nBUGS.TXT EXISTS!\n" : "");
+    if (fp) fclose(fp);
+  } else if (strncmp(temps1, "-cc", 4) == 0) {
+    system("more tests.txt bugs.txt performance.txt design.txt design.temp diff1 diff21 diff31 diff41 Search.java Makefile README tests.txt");
+  } else if (strncmp(temps1, "-ct", 4) == 0) {
+    system("more tests.txt");
+  } else if (strncmp(temps1, "-cm", 4) == 0) {
+    system("more Makefile");
+  } else if (strncmp(temps1, "-cd", 4) == 0) {
+    system("more diff*");
+  } else if (strncmp(temps1, "-cg", 4) == 0) {
+    system("more performance.txt design.txt");
+  } else if (strncmp(temps1, "-ce", 4) == 0) {
+    system("more Search.java");
+  } else if (strncmp(temps1, "-co", 4) == 0) {
+    system("more out*");
+  } else if (strncmp(temps1, "-pos", 5) == 0) {
+    printf("Your current position is %d out of %d\n", listGetPos(l, temp), listGetSize(l));
+  } else if (strncmp(temps1, "-ftr", 5) == 0) {
+    printf("Please enter the name of the text file you would like to filter for (add '!' to front of name to make it filter to directories without the file): ");
+    fgets(temps1, 500, stdin);
+    //printf("The thing being filtered is: %s which is size %d\n", temps1, strlen(temps1));
+    int tempint = listGetSize(l);
+    listFilter(l, dir, temps1);
+    if (tempint != listGetSize(l)) {
+      temp = l->first;
+      chdir("..");
+      chdir(temp->sdir);
     }
+  } else if (strncmp(temps1, "-ft ", 4) == 0) {
+    //printf("Please enter the name of the text file you would like to filter for (add '!' to front of name to make it filter to directories without the file): ");
+    strncpy(temps, temps1 + 4, 500);
+    temps[strlen(temps)] = '\n';
+    temps[strlen(temps) + 1] = '\0';
+    //printf("The thing being filtered is: %s which is size %d\n", temps, strlen(temps));
+    int tempint = listGetSize(l);
+    listFilter(l, dir, temps);
+    if (tempint != listGetSize(l)) {
+      temp = l->first;
+      chdir("..");
+      chdir(temp->sdir);
+    }
+  } else {
+    //printList(l);
+    //printf("The size of the list is %d\n", listGetSize(l));
+    system(temps1);
+  }
   }
   for (int i = 0; i < filecount; i++)
     free(fileList[i]);
@@ -566,22 +640,3 @@ void testGrade(char *dir) {
   listDestroy(l);
 }
 
-int main(int argc, char **argv) {
-  if (argc == 3) {
-    char *asg = argv[2];
-    char *method = argv[1];
-    if (strncmp(method, "-m", 3) == 0) sendMail(asg);
-    else if (strncmp(method, "-g", 3) == 0) getGrades(asg);
-    else if (strncmp(method, "-r", 3) == 0) testGrade(asg);
-    else if (strncmp(method, "-a", 3) == 0) autoGrade(asg);
-    else if (strncmp(method, "-b", 3) == 0) restoreGrades(asg);
-    else {
-      printf("Invalid method, Usage: [Method] [directory name for assignment]\n");
-      return 1;
-    }
-  } else {
-    printf("Usage: [Method] [directory name for assignment]\n");
-    return 1;
-  }
-  return 0;
-}

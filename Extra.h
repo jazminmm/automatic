@@ -13,6 +13,9 @@
 #include <dirent.h>
 #include <ctype.h>
 #include <math.h>
+#include <sys/types.h>
+#include <pwd.h>
+#include <stdbool.h>
 
 #define _GNU_SOURCE
 
