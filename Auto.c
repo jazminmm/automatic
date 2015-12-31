@@ -6,53 +6,63 @@
 
 #include "Auto.h"
 #define DEBUG true
-#define debugPrint(format, args...) \
+#define debugPrint(format, args...) {\
   if(DEBUG) {\
     printf("debug: ");\
     printf(format, args);\
     printf("\n");\
-  }
-#define autoPrint(format, args...) \
+  }\
+}
+#define autoPrint(format, args...) {\
   printf("auto: ");\
-printf(format, args);\
-printf("\n");
+  printf(format, args);\
+  printf("\n");\
+}
+#define autoError(format, args...) {\
+  autoPrint("ERROR", NULL);\
+  autoPrint(format, args);\
+  exit(0);\
+}
 
+char cwd[1024];
 char* exe = "auto";
+int i;
+char* classId;
+char* graderId;
+char* graderName;
 
 int main(int argc, char **argv) {
 
   if(argc == 1) {
-    autoUsage();
+    autoError("Usage: %s [flags] assignment", exe);
   }
   char *asg = argv[argc - 1];
 
   // Get classId (eg cmps012b-pt.s15)
-  char cwd[1024];
   getcwd(cwd, sizeof(cwd));
   debugPrint("cwd: %s", cwd);
-  int i;
-  char* classId = strtok(cwd, "/"); // afs
-  //char* root = sprintf("/%s", classId);
-  //chdir("/afs");
+  classId = strtok(cwd, "/"); // afs
+  chdir("/");
   for(i = 0; i < 3; i++) {
     // 0: cats.ucsc.edu
     // 1: class
     // 2: classdir
+    chdir(classId);
     classId = strtok(NULL, "/");
     debugPrint("cwd[%d]: %s", i, classId);
-    //chdir(classId);
   }
   autoPrint("Opening class directory %s", classId);
+  chdir(classId);
 
-  // Get user info
-  uid_t uid = geteuid();
-  struct passwd *pw = getpwuid(uid);
-  char* graderId = pw->pw_name;
-  char* graderName = pw->pw_gecos;
+  // Get grader info
+  graderId = getlogin();
+  graderName = realName(graderId);
   autoPrint("Welcome %s <%s>", graderName, graderId);
 
-  // Check if asg exists
-  
+  // Check if asg exists, and cd to it
+  if(chdir(graderId) != 0) autoError("Directory %s does not exist", asg); // Replace graderId -> asg
+  getcwd(cwd, sizeof(cwd)); // debug
+  debugPrint("cwd: %s", cwd);  
 
   /*
      if (argc == 3) {
@@ -75,9 +85,176 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-void autoUsage() {
-  printf("Usage: %s [flags] asg\n", exe);
-  exit(1);
+char* realName(char* id) {
+  struct passwd *pw = getpwnam(id);
+  return pw->pw_gecos;
+}
+
+void testGrade(char *dir) {
+  if (strncmp(dir, "pa2", 4)) {
+    printf("This method is not yet ready\n");
+    return;
+  }
+  char path[500];
+  FILE *fp;
+  FILE *fp2;
+  struct dirent **fileList;
+  sprintf(path, "/afs/cats.ucsc.edu/class/cmps012b-pt.s15/%s", dir);
+  int filecount;
+  if (chdir(path) != 0) {
+    printf("Trouble switching to the specified directory\n");
+    return;
+  }
+  filecount = scandir(".", &fileList, NULL, alphasort);
+  char *fl[filecount];
+  for (int l = 0; l < filecount; l++) {
+    fl[l] = fileList[l]->d_name;
+  }
+  char temps[501];
+  char temps1[501];
+  char mode = '2';
+  List *l = listCreate(fileList, 2);
+  List *ltemp = NULL;
+  if (!l) {
+    printf("Error compiling list");
+    return;
+  }
+  sprintf(temps, "/afs/cats.ucsc.edu/class/cmps012b-pt.s15/%s/%s", dir, l->first->sdir);
+  chdir(temps);
+  printf("Type '-h' for help\n");
+  Node *temp = l->first;
+  while (1) {
+    printf("auto> ");
+    gets(temps1);
+    if (strncmp(temps1, "-h", 2) == 0) {
+      printf("List of commands:\n-f - go to first directory\n-l - go to last directory\n-n - go to next directory\n-p - go to previous directory\n-ce - check Extrema.java\n-ct - check tests.txt\n-cd - check diff*\n-co - check out*\n-cg - check peformance.txt and design.txt\n-cm - check Makefile\n-c - check major files\n-m - change modes\n-ftr - filter the list to only have directories that contain (or don't by adding '!') a file\n-ft - fast filter that accepts direct argument and otherwise works like -ftr\n-vdt - open design.txt in vim\n-vpt - open performance.txt in vim\n-vbt - open bugs.txt\n-vgt - open grade.txt in vim\n-e - exit the program securely\n-h - bring up help\ntype anything else and it will be run as a unix command\n");
+    } else if (strncmp(temps1, "-f", 3) == 0) {
+      temp = l->first;
+      chdir("..");
+      chdir(temp->sdir);
+    } else if (strncmp(temps1, "-n", 3) == 0) {
+      if (temp->next) {
+        temp = temp->next;
+        chdir("..");
+        chdir(temp->sdir);
+      } else printf("No next directory\n");
+    } else if (strncmp(temps1, "-p", 3) == 0) {
+      if (temp->prev) {
+        temp = temp->prev;
+        chdir("..");
+        chdir(temp->sdir);
+      } else printf("No previous directory\n");
+    } else if (strncmp(temps1, "-l", 3) == 0) {
+      temp = l->last;
+      chdir("..");
+      chdir(temp->sdir);
+    } else if (strncmp(temps1, "-m", 3) == 0) {
+      do {
+        printf("Enter a mode: 0 for ungraded, 1 for graded, 2 for mixed: ");
+        mode = getchar();
+      } while(mode < 48 || mode > 50);
+      ltemp = listCreate(fileList, (int) mode - 48);
+      if (!ltemp) {
+        printf("%s mode has has no directories, try %s mode or mixed mode\n", mode == 48 ? "ungraded" : "graded", mode == 49 ? "ungraded" : "graded");
+      } else {
+        listDestroy(l);
+        l = ltemp;
+        ltemp = NULL;
+        temp = l->first;
+        chdir("..");
+        chdir(temp->sdir);
+        printf("Changing to mode %d\n", (int) mode - 48);
+      }
+    } else if (strncmp(temps1, "-e", 3) == 0) {
+      getGrades(dir);
+      printf("Exiting program\n");
+      break;
+    } else if (strncmp(temps1, "-vpt", 5) == 0) {
+      fp = fopen("performance.txt", "r");
+      if (!fp) {
+        sprintf(temps1, "cp /afs/cats.ucsc.edu/class/cmps012b-pt.s15/bin/%s/performance.txt .", dir);
+        system(temps1);
+      } else fclose(fp);
+      system("vi performance.txt");
+    } else if (strncmp(temps1, "-vdt", 5) == 0) {
+      fp = fopen("design.txt", "r");
+      if (!fp) {
+        sprintf(temps1, "cp /afs/cats.ucsc.edu/class/cmps012b-pt.s15/bin/%s/design.txt .", dir);
+        system(temps1);
+        fp = fopen("design.txt", "a");
+        fprintf(fp, "\n\n");
+        fp2 = fopen("design.temp", "r");
+        if (fp2) while (fgets(temps1, 500, fp2)) {
+          fprintf(fp, "%s", temps1);
+        }
+        if (fp2) fclose(fp2);
+      }
+      fclose(fp);
+      system("vi design.txt");
+    } else if (strncmp(temps1, "-vgt", 5) == 0) {
+      system("vi grade.txt");
+      //} else if (strncmp(temps1, "-pvgt", 6) == 0) {
+      //  fp = fopen("grade.txt", "w");
+      //  fprintf(fp, "%s points\n", (strncmp(dir, "pa3", 4) == 0 || strncmp(dir, "pa2", 4) == 0 || strncmp(dir, "pa1", 4)) ? "80/80" : "100/100");
+      //  fclose(fp);i
+  } else if (strncmp(temps1, "-vbt", 5) == 0) {
+    system("vi bugs.txt");
+  } else if (strncmp(temps1, "-c", 3) == 0) {
+    system("more tests.txt");
+    system("more *");
+    fp = fopen("bugs.txt", "r");
+    printf("%s", fp ? "::::::::::::::\nBUGS.TXT EXISTS!\n" : "");
+    if (fp) fclose(fp);
+  } else if (strncmp(temps1, "-cc", 4) == 0) {
+    system("more tests.txt bugs.txt performance.txt design.txt design.temp diff1 diff21 diff31 diff41 Search.java Makefile README tests.txt");
+  } else if (strncmp(temps1, "-ct", 4) == 0) {
+    system("more tests.txt");
+  } else if (strncmp(temps1, "-cm", 4) == 0) {
+    system("more Makefile");
+  } else if (strncmp(temps1, "-cd", 4) == 0) {
+    system("more diff*");
+  } else if (strncmp(temps1, "-cg", 4) == 0) {
+    system("more performance.txt design.txt");
+  } else if (strncmp(temps1, "-ce", 4) == 0) {
+    system("more Search.java");
+  } else if (strncmp(temps1, "-co", 4) == 0) {
+    system("more out*");
+  } else if (strncmp(temps1, "-pos", 5) == 0) {
+    printf("Your current position is %d out of %d\n", listGetPos(l, temp), listGetSize(l));
+  } else if (strncmp(temps1, "-ftr", 5) == 0) {
+    printf("Please enter the name of the text file you would like to filter for (add '!' to front of name to make it filter to directories without the file): ");
+    fgets(temps1, 500, stdin);
+    //printf("The thing being filtered is: %s which is size %d\n", temps1, strlen(temps1));
+    int tempint = listGetSize(l);
+    listFilter(l, dir, temps1);
+    if (tempint != listGetSize(l)) {
+      temp = l->first;
+      chdir("..");
+      chdir(temp->sdir);
+    }
+  } else if (strncmp(temps1, "-ft ", 4) == 0) {
+    //printf("Please enter the name of the text file you would like to filter for (add '!' to front of name to make it filter to directories without the file): ");
+    strncpy(temps, temps1 + 4, 500);
+    temps[strlen(temps)] = '\n';
+    temps[strlen(temps) + 1] = '\0';
+    //printf("The thing being filtered is: %s which is size %d\n", temps, strlen(temps));
+    int tempint = listGetSize(l);
+    listFilter(l, dir, temps);
+    if (tempint != listGetSize(l)) {
+      temp = l->first;
+      chdir("..");
+      chdir(temp->sdir);
+    }
+  } else {
+    //printList(l);
+    //printf("The size of the list is %d\n", listGetSize(l));
+    system(temps1);
+  }
+  }
+  for (int i = 0; i < filecount; i++)
+    free(fileList[i]);
+  free(fileList);
+  listDestroy(l);
 }
 
 void autoGrade(char *dir) {
@@ -472,171 +649,3 @@ void restoreGrades(char *dir) { //buggy
   printf("Restored %d design.txt files\n", filecount - 2);
   getGrades(dir);
 }
-
-void testGrade(char *dir) {
-  if (strncmp(dir, "pa2", 4)) {
-    printf("This method is not yet ready\n");
-    return;
-  }
-  char path[500];
-  FILE *fp;
-  FILE *fp2;
-  struct dirent **fileList;
-  sprintf(path, "/afs/cats.ucsc.edu/class/cmps012b-pt.s15/%s", dir);
-  int filecount;
-  if (chdir(path) != 0) {
-    printf("Trouble switching to the specified directory\n");
-    return;
-  }
-  filecount = scandir(".", &fileList, NULL, alphasort);
-  char *fl[filecount];
-  for (int l = 0; l < filecount; l++) {
-    fl[l] = fileList[l]->d_name;
-  }
-  char temps[501];
-  char temps1[501];
-  char mode = '2';
-  List *l = listCreate(fileList, 2);
-  List *ltemp = NULL;
-  if (!l) {
-    printf("Error compiling list");
-    return;
-  }
-  sprintf(temps, "/afs/cats.ucsc.edu/class/cmps012b-pt.s15/%s/%s", dir, l->first->sdir);
-  chdir(temps);
-  printf("Type '-h' for help\n");
-  Node *temp = l->first;
-  while (1) {
-    printf("auto> ");
-    gets(temps1);
-    if (strncmp(temps1, "-h", 2) == 0) {
-      printf("List of commands:\n-f - go to first directory\n-l - go to last directory\n-n - go to next directory\n-p - go to previous directory\n-ce - check Extrema.java\n-ct - check tests.txt\n-cd - check diff*\n-co - check out*\n-cg - check peformance.txt and design.txt\n-cm - check Makefile\n-c - check major files\n-m - change modes\n-ftr - filter the list to only have directories that contain (or don't by adding '!') a file\n-ft - fast filter that accepts direct argument and otherwise works like -ftr\n-vdt - open design.txt in vim\n-vpt - open performance.txt in vim\n-vbt - open bugs.txt\n-vgt - open grade.txt in vim\n-e - exit the program securely\n-h - bring up help\ntype anything else and it will be run as a unix command\n");
-    } else if (strncmp(temps1, "-f", 3) == 0) {
-      temp = l->first;
-      chdir("..");
-      chdir(temp->sdir);
-    } else if (strncmp(temps1, "-n", 3) == 0) {
-      if (temp->next) {
-        temp = temp->next;
-        chdir("..");
-        chdir(temp->sdir);
-      } else printf("No next directory\n");
-    } else if (strncmp(temps1, "-p", 3) == 0) {
-      if (temp->prev) {
-        temp = temp->prev;
-        chdir("..");
-        chdir(temp->sdir);
-      } else printf("No previous directory\n");
-    } else if (strncmp(temps1, "-l", 3) == 0) {
-      temp = l->last;
-      chdir("..");
-      chdir(temp->sdir);
-    } else if (strncmp(temps1, "-m", 3) == 0) {
-      do {
-        printf("Enter a mode: 0 for ungraded, 1 for graded, 2 for mixed: ");
-        mode = getchar();
-      } while(mode < 48 || mode > 50);
-      ltemp = listCreate(fileList, (int) mode - 48);
-      if (!ltemp) {
-        printf("%s mode has has no directories, try %s mode or mixed mode\n", mode == 48 ? "ungraded" : "graded", mode == 49 ? "ungraded" : "graded");
-      } else {
-        listDestroy(l);
-        l = ltemp;
-        ltemp = NULL;
-        temp = l->first;
-        chdir("..");
-        chdir(temp->sdir);
-        printf("Changing to mode %d\n", (int) mode - 48);
-      }
-    } else if (strncmp(temps1, "-e", 3) == 0) {
-      getGrades(dir);
-      printf("Exiting program\n");
-      break;
-    } else if (strncmp(temps1, "-vpt", 5) == 0) {
-      fp = fopen("performance.txt", "r");
-      if (!fp) {
-        sprintf(temps1, "cp /afs/cats.ucsc.edu/class/cmps012b-pt.s15/bin/%s/performance.txt .", dir);
-        system(temps1);
-      } else fclose(fp);
-      system("vi performance.txt");
-    } else if (strncmp(temps1, "-vdt", 5) == 0) {
-      fp = fopen("design.txt", "r");
-      if (!fp) {
-        sprintf(temps1, "cp /afs/cats.ucsc.edu/class/cmps012b-pt.s15/bin/%s/design.txt .", dir);
-        system(temps1);
-        fp = fopen("design.txt", "a");
-        fprintf(fp, "\n\n");
-        fp2 = fopen("design.temp", "r");
-        if (fp2) while (fgets(temps1, 500, fp2)) {
-          fprintf(fp, "%s", temps1);
-        }
-        if (fp2) fclose(fp2);
-      }
-      fclose(fp);
-      system("vi design.txt");
-    } else if (strncmp(temps1, "-vgt", 5) == 0) {
-      system("vi grade.txt");
-      //} else if (strncmp(temps1, "-pvgt", 6) == 0) {
-      //  fp = fopen("grade.txt", "w");
-      //  fprintf(fp, "%s points\n", (strncmp(dir, "pa3", 4) == 0 || strncmp(dir, "pa2", 4) == 0 || strncmp(dir, "pa1", 4)) ? "80/80" : "100/100");
-      //  fclose(fp);i
-  } else if (strncmp(temps1, "-vbt", 5) == 0) {
-    system("vi bugs.txt");
-  } else if (strncmp(temps1, "-c", 3) == 0) {
-    system("more tests.txt");
-    system("more *");
-    fp = fopen("bugs.txt", "r");
-    printf("%s", fp ? "::::::::::::::\nBUGS.TXT EXISTS!\n" : "");
-    if (fp) fclose(fp);
-  } else if (strncmp(temps1, "-cc", 4) == 0) {
-    system("more tests.txt bugs.txt performance.txt design.txt design.temp diff1 diff21 diff31 diff41 Search.java Makefile README tests.txt");
-  } else if (strncmp(temps1, "-ct", 4) == 0) {
-    system("more tests.txt");
-  } else if (strncmp(temps1, "-cm", 4) == 0) {
-    system("more Makefile");
-  } else if (strncmp(temps1, "-cd", 4) == 0) {
-    system("more diff*");
-  } else if (strncmp(temps1, "-cg", 4) == 0) {
-    system("more performance.txt design.txt");
-  } else if (strncmp(temps1, "-ce", 4) == 0) {
-    system("more Search.java");
-  } else if (strncmp(temps1, "-co", 4) == 0) {
-    system("more out*");
-  } else if (strncmp(temps1, "-pos", 5) == 0) {
-    printf("Your current position is %d out of %d\n", listGetPos(l, temp), listGetSize(l));
-  } else if (strncmp(temps1, "-ftr", 5) == 0) {
-    printf("Please enter the name of the text file you would like to filter for (add '!' to front of name to make it filter to directories without the file): ");
-    fgets(temps1, 500, stdin);
-    //printf("The thing being filtered is: %s which is size %d\n", temps1, strlen(temps1));
-    int tempint = listGetSize(l);
-    listFilter(l, dir, temps1);
-    if (tempint != listGetSize(l)) {
-      temp = l->first;
-      chdir("..");
-      chdir(temp->sdir);
-    }
-  } else if (strncmp(temps1, "-ft ", 4) == 0) {
-    //printf("Please enter the name of the text file you would like to filter for (add '!' to front of name to make it filter to directories without the file): ");
-    strncpy(temps, temps1 + 4, 500);
-    temps[strlen(temps)] = '\n';
-    temps[strlen(temps) + 1] = '\0';
-    //printf("The thing being filtered is: %s which is size %d\n", temps, strlen(temps));
-    int tempint = listGetSize(l);
-    listFilter(l, dir, temps);
-    if (tempint != listGetSize(l)) {
-      temp = l->first;
-      chdir("..");
-      chdir(temp->sdir);
-    }
-  } else {
-    //printList(l);
-    //printf("The size of the list is %d\n", listGetSize(l));
-    system(temps1);
-  }
-  }
-  for (int i = 0; i < filecount; i++)
-    free(fileList[i]);
-  free(fileList);
-  listDestroy(l);
-}
-
