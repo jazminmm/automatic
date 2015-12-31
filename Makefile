@@ -54,4 +54,7 @@ commit : spotless
 push : commit
 	git $@
 
+test : $(EXE)
+	$(EXE) $@
+
 .PHONY: clean spotless commit push
