@@ -6,12 +6,20 @@
 
 #include "List.h"
 
-//d is the struct dirent and ndir is the number of items in the struct
-List *listCreate(struct dirent **d, int ndir) {
+List *listCreate() {
   List *l = malloc(sizeof(List));
   l->first = NULL;
   l->last = NULL;
-  for (int i = 2; i < ndir; i++) listAppend(l, d[i]->d_name);
+  return l;
+}
+
+//d is the struct dirent and ndir is the number of items in the struct
+List *listCreateFromDirent(struct dirent **d, int ndir) {
+  List *l = malloc(sizeof(List));
+  l->first = NULL;
+  l->last = NULL;
+  for (int i = 0; i < ndir; i++) if (strncmp(".", d[i]->d_name, 2) && strncmp("..", d[i]->d_name, 3)) listAppend(l, d[i]->d_name);
+  return l;
 }
 
 void listPrint(List *l) {
@@ -111,7 +119,7 @@ void listFilter(List *l, char *dir,  char *filter) {
     //sprintf(loc, "ls /afs/cats.ucsc.edu/class/cmps012b-pt.s15/%s/%s", dir, temp->sdir); // testing
     //system(loc);      // testing
     //printf("In directory %s file %s %s but it %s in the filtered list\n", temp->sdir, temps, fp ? "exists" : "doesn't exist", !mode ? "should exist" : "shouldn't exist");
-    if (fp && mode || !fp && !mode) {
+    if ((fp && mode) || (!fp && !mode)) {
       fcount++;
     }
     temp = temp->next;
@@ -130,7 +138,7 @@ void listFilter(List *l, char *dir,  char *filter) {
     chdir(loc);
     FILE *fp = fopen(temps, "r");
     //printf("In directory %s file %s %s but it %s in the filtered list\n", temp->sdir, temps, fp ? "exists" : "doesn't exist", !mode ? "should exist" : "shouldn't exist");
-    if (fp && mode || !fp && !mode) {
+    if ((fp && mode) || (!fp && !mode)) {
       Node *temp1 = temp->next;
       deleteNode(l, temp);
       temp = temp1;
@@ -139,4 +147,13 @@ void listFilter(List *l, char *dir,  char *filter) {
     if (fp) fclose(fp);
   }
   printf("Successfully filtered out %d directories\n", fcount);
+}
+
+List *dirList() {
+  struct dirent **fileList = NULL;
+  int ndir = scandir(".", &fileList, NULL, alphasort);
+  List *l = listCreateFromDirent(fileList, ndir);
+  for (int i = 0; i < ndir; i++) free (fileList[i]);
+  free (fileList);
+  return l;
 }
