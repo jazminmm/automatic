@@ -21,6 +21,7 @@
 
 extern int alphasort();
 
+// ex: scandir(".", &fileList, NULL, alphasort);
 extern int scandir(const char *dirname, struct dirent ***namelist, int (*select)(const struct dirent *), int (*dcomp)(const struct dirent **, const struct dirent **));
 
 #endif //_EXTRA_H_

@@ -20,7 +20,11 @@ typedef struct List {
   Node *last;
 } List;
 
-List *listCreate(struct dirent **d, int ndir);
+// create a blank list
+List *listCreate();
+
+// create a list from a dirent struct (not including ".", and "..")
+List *listCreateFromDirent(struct dirent **d, int ndir);
 
 void listPrint(List *l);
 
@@ -38,5 +42,8 @@ List *listCopy(List *l);
 void deleteNode(List *l, Node *n);
 
 void listFilter(List *l, char *dir, char *filter);
+
+// returns a list of directories based off listCreateFromDirent and the current directory
+List *dirList();
 
 #endif //_LIST_H_

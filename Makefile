@@ -18,7 +18,6 @@ LINK = gcc
 #compile the executable
 $(EXE) : $(OBJ)
 	$(LINK) $(LFLAGS) $@ $(MAN) $^ $(ELFLAGS)
-	#chmod +x $@
 
 #compile the object files
 %.o : %.c $(DEP)
