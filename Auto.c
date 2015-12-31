@@ -5,7 +5,9 @@
 */
 
 #include "Auto.h"
-#define DEBUG true
+#define streq(str1, str2) strcmp(str1, str2) == 0
+#define DEBUG true // for debugPrint()
+// printf() alternative for debug purposes
 #define debugPrint(format, args...) {\
   if(DEBUG) {\
     printf("debug: ");\
@@ -13,56 +15,73 @@
     printf("\n");\
   }\
 }
+// printf() alternative for normal use
 #define autoPrint(format, args...) {\
   printf("auto: ");\
   printf(format, args);\
   printf("\n");\
 }
+// autoPrint() alternative that kills program
 #define autoError(format, args...) {\
   autoPrint("ERROR", NULL);\
   autoPrint(format, args);\
   exit(0);\
 }
 
-char cwd[1024];
+char cwd[1024]; // Always contains current directory structure
 char* exe = "auto";
 int i;
-char* classId;
-char* graderId;
-char* graderName;
+char* classId; // cmps012b-pt.s15
+char* graderId; // icherdak
+char* graderName; // Isaak Joseph Cherdak
 
 int main(int argc, char **argv) {
-
-  if(argc == 1) {
-    autoError("Usage: %s [flags] assignment", exe);
-  }
-  char *asg = argv[argc - 1];
-
-  // Get classId (eg cmps012b-pt.s15)
-  getcwd(cwd, sizeof(cwd));
-  debugPrint("cwd: %s", cwd);
-  classId = strtok(cwd, "/"); // afs
-  chdir("/");
-  for(i = 0; i < 3; i++) {
-    // 0: cats.ucsc.edu
-    // 1: class
-    // 2: classdir
-    chdir(classId);
-    classId = strtok(NULL, "/");
-    debugPrint("cwd[%d]: %s", i, classId);
-  }
-  autoPrint("Opening class directory %s", classId);
-  chdir(classId);
 
   // Get grader info
   graderId = getlogin();
   graderName = realName(graderId);
   autoPrint("Welcome %s <%s>", graderName, graderId);
 
-  // Check if asg exists, and cd to it
-  if(chdir(graderId) != 0) autoError("Directory %s does not exist", asg); // Replace graderId -> asg
-  getcwd(cwd, sizeof(cwd)); // debug
-  debugPrint("cwd: %s", cwd);  
+  // Do arguments (unfinshed)
+  // TODO: Actually support arguments
+  if(argc == 1) autoError("Usage: %s [flags] assignment", exe);
+  char *asg = argv[argc - 1];
+
+  // Get classId
+  changeDir(".");
+  debugPrint("cwd: %s", cwd);
+  classId = strtok(cwd, "/"); // afs
+  chdir("/");
+  changeDir(cwd);
+  for(i = 0; i < 3; i++) {
+    // 0: cats.ucsc.edu
+    // 1: class
+    // 2: cmps012b-pt.s15
+    classId = strtok(NULL, "/");
+    debugPrint("cwd[%d]: %s", i, classId);
+    changeDir(classId);
+    // TODO: Uncomment below on deploy
+    // if(i == 1 && strcmp(classId, "class")) autoError("Not installed in a valid class directory", NULL);
+  }
+  autoPrint("Opening class directory %s", classId);
+
+  // Move to assignment directory
+  if(! changeDir(asg)) {
+    autoError("Directory %s does not exist", asg);
+  }
+  debugPrint("currentDir: %s", currentDir());
+
+  // Get assignment config (within .auto)
+  bool init = false;
+  if(! changeDir(".auto")) {
+    autoPrint("Directory %s is not initialized", asg);
+    autoPrint("?: Would you like to create %s/.auto", asg);
+    if(! autoAsk()) autoError("Not initialized.", NULL);
+    debugPrint("mkdir .auto", NULL);
+  }
+
+  // Run shell
+  //autoShell(init);
 
   /*
      if (argc == 3) {
@@ -85,9 +104,50 @@ int main(int argc, char **argv) {
   return 0;
 }
 
+// @param id: Unix username
+// @return Full name of user
 char* realName(char* id) {
   struct passwd *pw = getpwnam(id);
   return pw->pw_gecos;
+}
+
+// @param dir: directory to move to
+// @return success
+// Version of chdir() that also updates cwd string
+bool changeDir(char* dir) {
+  debugPrint("cd: %s", dir);
+  int ret = chdir(dir);
+  getcwd(cwd, sizeof(cwd));
+  return ret == 0;
+}
+
+// @return current directory name
+// Warning: Uses strtok()
+char* currentDir() {
+  changeDir(".");
+  char* dir = strtok(cwd, "/");
+  while(true) {
+    char* temp = strtok(NULL, "/");
+    if(! temp) return dir;
+    dir = temp;
+  }
+}
+
+void autoPrompt(char* result) {
+  printf("[%s@auto %s] $ ", graderId, currentDir());
+  gets(result);
+}
+
+bool autoAsk() {
+  char result[1024];
+  printf("[%s@auto %s] (y/n) ", graderId, currentDir());
+  gets(result);
+  
+  return streq(result, "y")
+    || streq(result, "Y")
+    || streq(result, "yes")
+    || streq(result, "Yes")
+    || streq(result, "YES");
 }
 
 void testGrade(char *dir) {

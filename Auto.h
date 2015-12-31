@@ -17,3 +17,11 @@ void restoreGrades(char *dir); //buggy
 void testGrade(char *dir);
 
 char *realName(char *id);
+
+bool changeDir(char *dir);
+
+char* currentDir();
+
+void autoPrompt(char* result);
+
+bool autoAsk();

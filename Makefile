@@ -56,6 +56,6 @@ push : commit
 	git $@
 
 test : $(EXE)
-	$(EXE) $@
+	$(EXE) ${USER}
 
-.PHONY: clean spotless commit push
+.PHONY: clean spotless commit push test
