@@ -2,7 +2,7 @@
 
 # Makefile for compiling the automatic grading utility called Auto
 
-SRC = Auto.c List.c
+SRC = Auto.c List.c Stack.c
 DEP = $(SRC:.c=.h) Extra.h
 OBJ = $(SRC:.c=.o)
 EXE = Auto
@@ -61,4 +61,4 @@ push : commit
 test : $(EXE)
 	$(EXE) ${USER}
 
-.PHONY: clean spotless pull commit push test
+.PHONY: clean spotless pull commit push test -m -g -t -r
