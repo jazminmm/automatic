@@ -6,7 +6,7 @@
 
 #include "Auto.h"
 #define streq(str1, str2) strcmp(str1, str2) == 0
-#define DEBUG true // for debugPrint()
+#define DEBUG false // for debugPrint()
 // printf() alternative for debug purposes
 #define debugPrint(format, args...) {\
   if(DEBUG) {\
@@ -27,58 +27,79 @@
   autoPrint(format, args);\
   exit(0);\
 }
+#define STRLEN 509
 
-char cwd[1024]; // Always contains current directory structure
-char* exe = "auto";
+// Global vars
+char cwd[STRLEN]; // Always contains current directory structure
+
+// Constants
+char* exeId = "auto";
+char* exeName = "Automatic";
+char exeDir[STRLEN]; // Folder where executable is found
+char graderId[STRLEN]; // icherdak
+char graderName[STRLEN]; // Isaak Joseph Cherdak
+char classId[STRLEN]; // cmps012b-pt.s15
+char classDir[STRLEN];
+char* asg; // pa1
+
+// Temp
 int i;
-char* classId; // cmps012b-pt.s15
-char* graderId; // icherdak
-char* graderName; // Isaak Joseph Cherdak
 
 int main(int argc, char **argv) {
 
   // Get grader info
-  graderId = getlogin();
-  graderName = realName(graderId);
-  autoPrint("Welcome %s <%s>", graderName, graderId);
+  strcpy(graderId, getlogin());
+  strcpy(graderName, realName(getlogin()));
+  autoPrint("Loading user: %s <%s>", graderName, graderId);
 
   // Do arguments (unfinshed)
   // TODO: Actually support arguments
-  if(argc == 1) autoError("Usage: %s [flags] assignment", exe);
-  char *asg = argv[argc - 1];
+  if(argc == 1) autoError("Usage: %s [flags] assignment", exeId);
+  asg = argv[argc - 1];
+
+  // Get exeDir
+  strcpy(exeDir, currentPath());
+  if(! streq(currentDir(), exeName)) {
+    if(! changeDir(exeName)) autoError("Could not find executable directory", NULL);
+    changeDir("..");
+    strcat(exeDir, "/");
+    strcat(exeDir, exeName);
+  }
+  debugPrint("exeDir: %s", exeDir);
 
   // Get classId
   changeDir(".");
-  debugPrint("cwd: %s", cwd);
-  classId = strtok(cwd, "/"); // afs
-  chdir("/");
-  changeDir(cwd);
+  char* temp = strtok(cwd, "/"); // afs
+  strcat(classDir, "/");
+  strcat(classDir, temp);
   for(i = 0; i < 3; i++) {
     // 0: cats.ucsc.edu
     // 1: class
     // 2: cmps012b-pt.s15
-    classId = strtok(NULL, "/");
-    debugPrint("cwd[%d]: %s", i, classId);
-    changeDir(classId);
+    temp = strtok(NULL, "/");
+    debugPrint("classDir: %s", classDir);
+    debugPrint("temp: %s", temp);
+    strcat(classDir, "/");
+    strcat(classDir, temp);
     // TODO: Uncomment below on deploy
-    // if(i == 1 && strcmp(classId, "class")) autoError("Not installed in a valid class directory", NULL);
+    // if(i == 1 && ! streq(temp, "class")) autoError("Not installed in a valid class directory", NULL);
   }
-  autoPrint("Opening class directory %s", classId);
+  changeDir(classDir);
+  strcpy(classId, currentDir());
+  autoPrint("Opening class directory: %s", classId);
 
   // Move to assignment directory
   if(! changeDir(asg)) {
-    autoError("Directory %s does not exist", asg);
+    autoError("Cannot find class directory: %s", asg);
   }
+  autoPrint("Opening asg directory: %s", asg);
   debugPrint("currentDir: %s", currentDir());
 
   // Get assignment config (within .auto)
-  bool init = false;
-  if(! changeDir(".auto")) {
-    autoPrint("Directory %s is not initialized", asg);
-    autoPrint("?: Would you like to create %s/.auto", asg);
-    if(! autoAsk()) autoError("Not initialized.", NULL);
-    debugPrint("mkdir .auto", NULL);
-  }
+  assertChangeDir(".auto");
+  if(fileExists("avalera.auto")) debugPrint("File exists", NULL);
+  changeDir("..");
+  
 
   // Run shell
   //autoShell(init);
@@ -121,6 +142,25 @@ bool changeDir(char* dir) {
   return ret == 0;
 }
 
+// @param dir: directory to move to
+// Version of changeDir() that creates dir if nonexistent
+void assertChangeDir(char* dir) {
+  if(! changeDir(dir)) {
+    char cmd[1024];
+    sprintf(cmd, "mkdir %s", dir);
+    system(cmd);
+    changeDir(dir);
+    debugPrint("mkdir: %s", dir);
+  }
+  debugPrint("cd: %s", dir);
+}
+
+// @return current directory path
+char* currentPath() {
+  changeDir(".");
+  return cwd;
+}
+
 // @return current directory name
 // Warning: Uses strtok()
 char* currentDir() {
@@ -133,21 +173,29 @@ char* currentDir() {
   }
 }
 
+// @param result: string to hold result of prompt
+// Get input from user
 void autoPrompt(char* result) {
-  printf("[%s@auto %s] $ ", graderId, currentDir());
+  printf("[%s@%s %s] $ ", graderId, exeId, currentDir());
   gets(result);
 }
 
+// @return result
+// Get boolean input from user
 bool autoAsk() {
   char result[1024];
-  printf("[%s@auto %s] (y/n) ", graderId, currentDir());
+  printf("[%s@%s %s] (y/n) ", graderId, exeId, currentDir());
   gets(result);
-  
   return streq(result, "y")
     || streq(result, "Y")
     || streq(result, "yes")
     || streq(result, "Yes")
     || streq(result, "YES");
+}
+
+bool fileExists(char* file) {
+  struct stat buffer;
+  return stat(file, &buffer) == 0;
 }
 
 void testGrade(char *dir) {

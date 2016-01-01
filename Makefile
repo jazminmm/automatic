@@ -47,7 +47,11 @@ spotless : clean
 	rm -f $(EXE)
 
 # Git stuff
-commit : spotless
+
+pull :
+	git $@
+
+commit : pull spotless
 	git add --all
 	git $@
 
@@ -57,4 +61,4 @@ push : commit
 test : $(EXE)
 	$(EXE) ${USER}
 
-.PHONY: clean spotless commit push test
+.PHONY: clean spotless pull commit push test
