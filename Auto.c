@@ -5,7 +5,7 @@
 
 #include "Auto.h"
 #define streq(str1, str2) strcmp(str1, str2) == 0
-#define DEBUG false // for debugPrint()
+#define DEBUG true // for debugPrint()
 // printf() alternative for debug purposes
 #define debugPrint(format, args...) {\
   if(DEBUG) {\
@@ -42,9 +42,11 @@ char classDir[STRLEN]; // Folder for class TODO: Still needed?
 char asgDir[STRLEN]; // Folder for assignment
 List* classList; // List of all students
 char* asg; // pa1
+bool hasInitScript = false;
 
 // Temp
-int i;
+int tempInt = 0;
+char tempString[STRLEN];
 
 int main(int argc, char **argv) {
 
@@ -73,7 +75,7 @@ int main(int argc, char **argv) {
   char* temp = strtok(cwd, "/"); // afs
   strcat(classDir, "/");
   strcat(classDir, temp);
-  for(i = 0; i < 3; i++) {
+  for(tempInt = 0; tempInt < 3; tempInt++) {
     // 0: cats.ucsc.edu
     // 1: class
     // 2: cmps012b-pt.s15
@@ -106,7 +108,9 @@ int main(int argc, char **argv) {
 
   // Get assignment config (within .auto)
   assertChangeDir(".auto");
-  if(fileExists("avalera.auto")) debugPrint("File exists", NULL);
+  sprintf(tempString, "%s.sh", graderId);
+  hasInitScript = fileExists(tempString);
+  if(hasInitScript) debugPrint("InitScript exists", NULL);
   changeDir("..");
 
   // Run shell
