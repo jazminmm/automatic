@@ -40,7 +40,7 @@ char graderName[STRLEN]; // Isaak Joseph Cherdak
 char classId[STRLEN]; // cmps012b-pt.s15
 char classDir[STRLEN]; // Folder for class TODO: Still needed?
 char asgDir[STRLEN]; // Folder for assignment
-List* classList; // List of all students
+List* listAll; // List of all students
 char* asg; // pa1
 bool hasInitScript = false;
 
@@ -101,9 +101,9 @@ int main(int argc, char **argv) {
   strcpy(asgDir, classDir);
   strcat(asgDir, "/");
   strcat(asgDir, asg);
-  classList = dirList();
-  if(! classList) autoError("ASG <%s> could not be listed", classId);
-  if(! classList->first) autoError("ASG <%s> is empty", classId);
+  listAll = dirList();
+  if(! listAll) autoError("ASG <%s> could not be listed", classId);
+  if(! listAll->first) autoError("ASG <%s> is empty", classId);
 
 
   // Get assignment config (within .auto)
@@ -215,7 +215,7 @@ bool fileExists(char* file) {
 // Auto shell loop
 // Assume start at root directory
 void autoShell() {
-  Node* student = classList->first;
+  Node* student = listAll->first;
   char cmd[1024];
   while(student) {
     changeDir(asgDir);
@@ -228,14 +228,16 @@ void autoShell() {
       if(student->next) {
         student = student->next;
       } else {
-        student = classList->first;
+        student = listAll->first;
       }
     } else if(streq(cmd, "prev")) {
       if(student->prev) {
         student = student->prev;
       } else {
-        student = classList->last;
+        student = listAll->last;
       }
+    } else if(streq(cmd, "list print")) {
+      listPrint(listAll);
     } else {
       system(cmd);
     }

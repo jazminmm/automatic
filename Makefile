@@ -55,10 +55,15 @@ commit : pull spotless
 	git add --all
 	git $@
 
+log :
+	git $@ --graph --oneline
+
 push : commit
 	git $@
+
+# Test (only on ucsc dir)
 
 test : $(EXE)
 	$(EXE) ${USER}
 
-.PHONY: clean spotless pull commit push test -m -g -t -r
+.PHONY: clean spotless pull commit push log test -m -g -t -r
