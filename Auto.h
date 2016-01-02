@@ -31,3 +31,5 @@ void autoPrompt(char* result);
 bool autoAsk();
 
 bool fileExists(char* file);
+
+void autoShell();

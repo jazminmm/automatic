@@ -1,8 +1,7 @@
 /*
-
-   Auto.c
-
-*/
+ * Auto.c
+ * Main executable for the automatic grading utility
+ */
 
 #include "Auto.h"
 #define streq(str1, str2) strcmp(str1, str2) == 0
@@ -25,7 +24,7 @@
 #define autoError(format, args...) {\
   autoPrint("ERROR", NULL);\
   autoPrint(format, args);\
-  exit(0);\
+  exit(1);\
 }
 #define STRLEN 509
 
@@ -34,12 +33,13 @@ char cwd[STRLEN]; // Always contains current directory structure
 
 // Constants
 char* exeId = "auto";
-char* exeName = "Automatic";
+char* exeName = "automatic";
 char exeDir[STRLEN]; // Folder where executable is found
 char graderId[STRLEN]; // icherdak
 char graderName[STRLEN]; // Isaak Joseph Cherdak
 char classId[STRLEN]; // cmps012b-pt.s15
-char classDir[STRLEN];
+char classDir[STRLEN]; // Folder for class
+List* classList; // List of all students
 char* asg; // pa1
 
 // Temp
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
   // Get grader info
   strcpy(graderId, getlogin());
   strcpy(graderName, realName(getlogin()));
-  autoPrint("Loading user: %s <%s>", graderName, graderId);
+  autoPrint("GRADER %s <%s> loaded", graderName, graderId);
 
   // Do arguments (unfinshed)
   // TODO: Actually support arguments
@@ -86,23 +86,28 @@ int main(int argc, char **argv) {
   }
   changeDir(classDir);
   strcpy(classId, currentDir());
-  autoPrint("Opening class directory: %s", classId);
+  autoPrint("CLASS %s loaded", classId);
 
   // Move to assignment directory
   if(! changeDir(asg)) {
-    autoError("Cannot find class directory: %s", asg);
+    system("ls -d */"); // print out all possible directories
+    autoError("ASG %s does not exist", asg);
   }
-  autoPrint("Opening asg directory: %s", asg);
+  autoPrint("ASG %s loaded", asg);
   debugPrint("currentDir: %s", currentDir());
+  classList = dirList();
+  if(! classList) autoError("ASG %s could not be listed", classId);
+  if(! classList->first) autoError("ASG %s is empty", classId);
+
 
   // Get assignment config (within .auto)
   assertChangeDir(".auto");
   if(fileExists("avalera.auto")) debugPrint("File exists", NULL);
   changeDir("..");
-  
 
   // Run shell
-  //autoShell(init);
+  autoShell();
+  return 0;
 
   /*
      if (argc == 3) {
@@ -122,7 +127,6 @@ int main(int argc, char **argv) {
      return 1;
      }
      */
-  return 0;
 }
 
 // @param id: Unix username
@@ -193,9 +197,25 @@ bool autoAsk() {
     || streq(result, "YES");
 }
 
+// @param file: name of file
+// @return file existence
 bool fileExists(char* file) {
   struct stat buffer;
   return stat(file, &buffer) == 0;
+}
+
+// Auto shell loop
+// Assume start at root directory
+void autoShell() {
+  Node* student = classList->first;
+  char cmd[1024];
+  while(student) {
+    changeDir(classDir);
+    if(! changeDir(student->sdir)) autoError("USER %s could not be opened", student->sdir);
+    autoPrompt(cmd);
+
+    if(streq(cmd, "exit")) exit(0);
+  }
 }
 
 void testGrade(char *dir) {
