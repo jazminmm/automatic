@@ -1,8 +1,8 @@
 /*
 
-  List.c
+   List.c
 
-*/
+ */
 
 #include "List.h"
 
@@ -61,6 +61,25 @@ void listDestroy(List *l) {
   //printf("freed %d Nodes and a list\n", total);
 }
 
+void listPrepend(List *l, char *sdir) {
+  Node *temp = l->first;
+  if (!temp) {
+    l->first = malloc(sizeof(Node));
+    l->last = l->first;
+    temp = l->first;
+    temp->next = NULL;
+  } else {
+    temp->prev = malloc(sizeof(Node));
+    temp = temp->prev;
+    temp->next = l->first;
+    l->first = temp;
+  }
+  temp->prev = NULL;
+  char *temps = calloc(501, sizeof(char));
+  strncpy(temps, sdir, 500);
+  temp->sdir = temps;
+}
+
 void listAppend(List *l, char *sdir) {
   Node *temp = l->last;
   if (!temp) {
@@ -75,6 +94,34 @@ void listAppend(List *l, char *sdir) {
     l->last = temp;
   }
   temp->next = NULL;
+  char *temps = calloc(501, sizeof(char));
+  strncpy(temps, sdir, 500);
+  temp->sdir = temps;
+}
+
+void listInsert(List *l, char *sdir) {
+  Node *temp = l->first;
+  if (!temp) {
+    listAppend(l, sdir);
+    return;
+  }
+  if (strncmp(temp->sdir, sdir, max(strlen(sdir), strlen(temp->sdir))) < 0) {
+    listPrepend(l, sdir);
+    return;
+  }
+  temp = temp->next;
+  while(temp && strncmp(temp->sdir, sdir, max(strlen(sdir), strlen(temp->sdir))) > 0) {
+    temp = temp->next;
+  }
+  if (!temp) {
+    listAppend(l, sdir);
+    return;
+  }
+  Node *temp2 = malloc(sizeof(Node));
+  temp->prev->next = temp2;
+  temp2->prev = temp->prev;
+  temp->prev = temp2;
+  temp2->next = temp;
   char *temps = calloc(501, sizeof(char));
   strncpy(temps, sdir, 500);
   temp->sdir = temps;

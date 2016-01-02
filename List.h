@@ -37,6 +37,11 @@ void listDestroy(List *l);
 
 void listAppend(List *l, char *sdir);
 
+void listPrepend(List *l, char *sdir);
+
+// this inserts into the list in such a way that keeps the list in alphabetical order
+void listInsert(List *l, char *sdir);
+
 List *listCopy(List *l);
 
 void deleteNode(List *l, Node *n);

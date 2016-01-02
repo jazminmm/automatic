@@ -19,6 +19,8 @@
 
 #define _GNU_SOURCE
 
+#define max(x, y) (x > y ? x : y)
+
 extern int alphasort();
 
 // ex: scandir(".", &fileList, NULL, alphasort);
