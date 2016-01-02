@@ -18,7 +18,12 @@ List *listCreateFromDirent(struct dirent **d, int ndir) {
   List *l = malloc(sizeof(List));
   l->first = NULL;
   l->last = NULL;
-  for (int i = 0; i < ndir; i++) if (strncmp(".", d[i]->d_name, 2) && strncmp("..", d[i]->d_name, 3)) listAppend(l, d[i]->d_name);
+  for (int i = 0; i < ndir; i++) if (strncmp(".", d[i]->d_name, 2) && strncmp("..", d[i]->d_name, 3)) {
+    if (chdir(d[i]->d_name)) {
+      chdir("..");
+      listAppend(l, d[i]->d_name);
+    }
+  }
   return l;
 }
 
