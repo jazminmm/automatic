@@ -38,7 +38,8 @@ char exeDir[STRLEN]; // Folder where executable is found
 char graderId[STRLEN]; // icherdak
 char graderName[STRLEN]; // Isaak Joseph Cherdak
 char classId[STRLEN]; // cmps012b-pt.s15
-char classDir[STRLEN]; // Folder for class
+char classDir[STRLEN]; // Folder for class TODO: Still needed?
+char asgDir[STRLEN]; // Folder for assignment
 List* classList; // List of all students
 char* asg; // pa1
 
@@ -50,7 +51,7 @@ int main(int argc, char **argv) {
   // Get grader info
   strcpy(graderId, getlogin());
   strcpy(graderName, realName(getlogin()));
-  autoPrint("GRADER %s <%s> loaded", graderName, graderId);
+  autoPrint("GRADER <%s> (%s) loaded", graderId, graderName);
 
   // Do arguments (unfinshed)
   // TODO: Actually support arguments
@@ -86,18 +87,21 @@ int main(int argc, char **argv) {
   }
   changeDir(classDir);
   strcpy(classId, currentDir());
-  autoPrint("CLASS %s loaded", classId);
+  autoPrint("CLASS <%s> loaded", classId);
 
   // Move to assignment directory
   if(! changeDir(asg)) {
     system("ls -d */"); // print out all possible directories
-    autoError("ASG %s does not exist", asg);
+    autoError("ASG <%s> does not exist", asg);
   }
-  autoPrint("ASG %s loaded", asg);
+  autoPrint("ASG <%s> loaded", asg);
   debugPrint("currentDir: %s", currentDir());
+  strcpy(asgDir, classDir);
+  strcat(asgDir, "/");
+  strcat(asgDir, asg);
   classList = dirList();
-  if(! classList) autoError("ASG %s could not be listed", classId);
-  if(! classList->first) autoError("ASG %s is empty", classId);
+  if(! classList) autoError("ASG <%s> could not be listed", classId);
+  if(! classList->first) autoError("ASG <%s> is empty", classId);
 
 
   // Get assignment config (within .auto)
@@ -180,7 +184,7 @@ char* currentDir() {
 // @param result: string to hold result of prompt
 // Get input from user
 void autoPrompt(char* result) {
-  printf("[%s@%s %s] $ ", graderId, exeId, currentDir());
+  printf("[%s@%s %s]$ ", graderId, exeId, currentDir());
   gets(result);
 }
 
@@ -188,7 +192,7 @@ void autoPrompt(char* result) {
 // Get boolean input from user
 bool autoAsk() {
   char result[1024];
-  printf("[%s@%s %s] (y/n) ", graderId, exeId, currentDir());
+  printf("[%s@%s %s](y/n) ", graderId, exeId, currentDir());
   gets(result);
   return streq(result, "y")
     || streq(result, "Y")
@@ -210,11 +214,27 @@ void autoShell() {
   Node* student = classList->first;
   char cmd[1024];
   while(student) {
-    changeDir(classDir);
-    if(! changeDir(student->sdir)) autoError("USER %s could not be opened", student->sdir);
+    changeDir(asgDir);
+    if(! changeDir(student->sdir)) autoError("USER <%s> could not be opened", student->sdir);
     autoPrompt(cmd);
 
-    if(streq(cmd, "exit")) exit(0);
+    if(streq(cmd, "exit")) {
+      exit(0);
+    } else if(streq(cmd, "next")) {
+      if(student->next) {
+        student = student->next;
+      } else {
+        student = classList->first;
+      }
+    } else if(streq(cmd, "prev")) {
+      if(student->prev) {
+        student = student->prev;
+      } else {
+        student = classList->last;
+      }
+    } else {
+      system(cmd);
+    }
   }
 }
 
