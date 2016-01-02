@@ -49,7 +49,7 @@ spotless : clean
 # Git stuff
 
 pull :
-	git $@
+	git $@ origin master
 
 commit : pull spotless
 	git add --all
