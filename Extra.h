@@ -21,6 +21,10 @@
 
 #define max(x, y) (x > y ? x : y)
 
+#define min(x, y) (x < y ? x : y)
+
+#define strcmp(x, y) strncmp(x, y, min(strlen(x), strlen(y)))
+
 extern int alphasort();
 
 // ex: scandir(".", &fileList, NULL, alphasort);
