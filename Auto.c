@@ -39,9 +39,9 @@ char graderId[STRLEN]; // icherdak
 char graderName[STRLEN]; // Isaak Joseph Cherdak
 char classId[STRLEN]; // cmps012b-pt.s15
 char classDir[STRLEN]; // Folder for class TODO: Still needed?
+char asgId[STRLEN]; // pa1
 char asgDir[STRLEN]; // Folder for assignment
 List* listAll; // List of all students
-char* asg; // pa1
 bool hasInitScript = false;
 
 // Temp
@@ -57,8 +57,9 @@ int main(int argc, char **argv) {
 
   // Do arguments (unfinshed)
   // TODO: Actually support arguments
-  if(argc == 1) autoError("Usage: %s [flags] assignment", exeId);
-  asg = argv[argc - 1];
+  if(argc == 1) autoError("Usage: %s [flags] [class] assignment", exeId);
+  if(argc >= 3 && argv[argc - 2][1] != "-") strcpy(classId, argv[argc - 2]);
+  strcpy(asgId, argv[argc - 1]);
 
   // Get exeDir
   strcpy(exeDir, currentPath());
@@ -71,50 +72,63 @@ int main(int argc, char **argv) {
   debugPrint("exeDir: %s", exeDir);
 
   // Get classId
-  changeDir(".");
-  char* temp = strtok(cwd, "/"); // afs
-  strcat(classDir, "/");
-  strcat(classDir, temp);
-  for(tempInt = 0; tempInt < 3; tempInt++) {
-    // 0: cats.ucsc.edu
-    // 1: class
-    // 2: cmps012b-pt.s15
-    temp = strtok(NULL, "/");
-    debugPrint("classDir: %s", classDir);
-    debugPrint("temp: %s", temp);
-    strcat(classDir, "/");
-    strcat(classDir, temp);
-    // TODO: Uncomment below on deploy
-    // if(i == 1 && ! streq(temp, "class")) autoError("Not installed in a valid class directory", NULL);
+  if(streq(classId, "")) {
+    changeDir(".");
+    chdir("/");
+    strtok(cwd, "/");
+    char* temp = cwd; // afs
+    debugPrint("temp: ", temp);
+    for(tempInt = 0; tempInt < 3; tempInt++) {
+      // 0: cats.ucsc.edu
+      // 1: class
+      // 2: cmps012b-pt.s15
+      chdir(temp);
+      temp = strtok(NULL, "/");
+      debugPrint("temp: %s", temp);
+      chdir(temp);
+      // TODO: Replace following line
+      if(tempInt == 1 && ! streq(temp, "users")) autoError("CLASS not specified, and not installed in a valid class directory.", NULL);
+      // if(tempInt == 1 && ! streq(temp, "class")) autoError("CLASS not specified, and not installed in a valid class directory.", NULL);
+    }
+    strcpy(classId, temp);
+  } else {
+    // TODO: Replace following line
+    changeDir("/afs/cats.ucsc.edu/users");
+    //changeDir("/afs/cats.ucsc.edu/class");
   }
+  changeDir(classId);
+  debugPrint("currentDir: %s", currentDir());
+  strcpy(classDir, currentPath());
   changeDir(classDir);
-  strcpy(classId, currentDir());
   autoPrint("CLASS <%s> loaded", classId);
 
   // Move to assignment directory
-  if(! changeDir(asg)) {
+  if(! changeDir(asgId)) {
     system("ls -d */"); // print out all possible directories
-    autoError("ASG <%s> does not exist", asg);
+    autoError("ASG <%s> does not exist", asgId);
   }
-  autoPrint("ASG <%s> loaded", asg);
+  autoPrint("ASG <%s> loaded", asgId);
   debugPrint("currentDir: %s", currentDir());
   strcpy(asgDir, classDir);
   strcat(asgDir, "/");
-  strcat(asgDir, asg);
+  strcat(asgDir, asgId);
   listAll = dirList();
-  if(! listAll) autoError("ASG <%s> could not be listed", classId);
-  if(! listAll->first) autoError("ASG <%s> is empty", classId);
+  if(! listAll) autoError("ASG <%s> could not be listed", asgId);
+  if(! listAll->first) autoError("ASG <%s> is empty", asgId);
 
 
   // Get assignment config (within .auto)
   assertChangeDir(".auto");
-  sprintf(tempString, "%s.sh", graderId);
+  sprintf(tempString, "%s.init", graderId);
   hasInitScript = fileExists(tempString);
   if(hasInitScript) debugPrint("InitScript exists", NULL);
   changeDir("..");
 
   // Run shell
   autoShell();
+
+  // Free data
+  listDestroy(listAll);
   return 0;
 
   /*
@@ -148,9 +162,9 @@ char* realName(char* id) {
 // @return success
 // Version of chdir() that also updates cwd string
 bool changeDir(char* dir) {
-  debugPrint("cd: %s", dir);
   int ret = chdir(dir);
   getcwd(cwd, sizeof(cwd));
+  debugPrint(ret == 0 ? "cd: %s suceeded" : "cd: %s failed", dir);
   return ret == 0;
 }
 
