@@ -56,10 +56,11 @@ commit : pull spotless
 	git $@
 
 log :
-	git $@ --graph --oneline
+	git $@ --graph --oneline -10
 
 push : commit
 	git $@
+	make log
 
 # Test (only on ucsc dir)
 
