@@ -40,12 +40,13 @@ char* exeId = "auto";
 char* exeName = "automatic";
 char graderId[STRLEN]; // icherdak
 char graderName[STRLEN]; // Isaak Joseph Cherdak
+Table* graderTable; // User config
 char exeDir[STRLEN]; // Folder where executable is found
 char binDir[STRLEN]; // Folder for bin
 char classId[STRLEN]; // cmps012b-pt.s15
 char asgId[STRLEN]; // pa1
 char asgDir[STRLEN]; // Folder for assignment
-List* listAll; // List of all students
+List* asgList; // List of all students
 bool hasInitScript = false;
 
 // Temp
@@ -53,11 +54,6 @@ int tempInt = 0;
 char tempString[STRLEN];
 
 int main(int argc, char **argv) {
-
-  // Get grader info
-  strcpy(graderId, getlogin());
-  strcpy(graderName, realName(getlogin()));
-  autoPrint("GRADER <%s> (%s) loaded", graderId, graderName);
 
   // Do arguments (unfinshed)
   // TODO: Actually support arguments
@@ -103,15 +99,15 @@ int main(int argc, char **argv) {
   changeDir(classId);
   debugPrint("currentDir: %s", currentDir());
   autoPrint("CLASS <%s> loaded", classId);
-  
+
   // Get bin info
   // TODO: Replace following line
-  strcpy(binDir, "afs/cats.ucsc.edu/users/m/avalera/bin");
+  strcpy(binDir, "/afs/cats.ucsc.edu/users/m/avalera/bin");
   /*
-  if(! changeDir("bin")) autoError("INFO Could not find bin directory", NULL);
-  strcpy(binDir, currentDir());
-  changeDir("..");
-  */
+     if(! changeDir("bin")) autoError("INFO Could not find bin directory", NULL);
+     strcpy(binDir, currentDir());
+     changeDir("..");
+     */
   autoPrint("BIN loaded", NULL);
 
   // Get asg info
@@ -124,13 +120,21 @@ int main(int argc, char **argv) {
   debugPrint("currentDir: %s", currentDir());
   strcpy(asgDir, currentPath());
 
-  // Generate lists
-  listAll = dirList();
-  if(! listAll) autoError("ASG <%s> could not be listed", asgId);
-  if(! listAll->first) autoError("ASG <%s> is empty", asgId);
+  asgList = dirList();
+  if(! asgList) autoError("ASG <%s> could not be listed", asgId);
+  if(! asgList->first) autoError("ASG <%s> is empty", asgId);
+
+  // Get grader info
+  strcpy(graderId, getlogin());
+  strcpy(graderName, realName(getlogin()));
+  changeDir(binDir);
+  assertChangeDir("autoconfig");
+  graderTable = tableRead(graderId);
+  autoPrint("GRADER <%s> (%s) loaded", graderId, graderName);
 
   // Get assignment config (within .auto)
-  assertChangeDir(".auto");
+  changeDir(binDir);
+  assertChangeDir(classId);
   sprintf(tempString, "%s.init", graderId);
   hasInitScript = fileExists(tempString);
   if(hasInitScript) debugPrint("InitScript exists", NULL);
@@ -140,7 +144,7 @@ int main(int argc, char **argv) {
   autoShell();
 
   // Free data
-  listDestroy(listAll);
+  listDestroy(asgList);
   return 0;
 
   /*
@@ -241,7 +245,7 @@ bool fileExists(char* file) {
 // Auto shell loop
 // Assume start at root directory
 void autoShell() {
-  Node* student = listAll->first;
+  Node* student = asgList->first;
   char cmd[1024];
   while(student) {
     changeDir(asgDir);
@@ -254,16 +258,16 @@ void autoShell() {
       if(student->next) {
         student = student->next;
       } else {
-        student = listAll->first;
+        student = asgList->first;
       }
     } else if(streq(cmd, "prev")) {
       if(student->prev) {
         student = student->prev;
       } else {
-        student = listAll->last;
+        student = asgList->last;
       }
     } else if(streq(cmd, "list print")) {
-      listPrint(listAll);
+      listPrint(asgList);
     } else {
       system(cmd);
     }
