@@ -4,8 +4,8 @@
  */
 
 #include "Auto.h"
-#define streq(str1, str2) strcmp(str1, str2) == 0
-#define DEBUG true // for debugPrint()
+#define streq(str1, str2) (strlen(str1) == strlen(str2)) && (strcmp(str1, str2) == 0)
+#define DEBUG false // for debugPrint()
 // printf() alternative for debug purposes
 #define debugPrint(format, args...) {\
   if(DEBUG) {\
@@ -24,10 +24,11 @@
 #define autoError(format, args...) {\
   autoPrint("ERROR resulting in program crash", NULL);\
   autoPrint(format, args);\
-  autoPrint("GRADER <%s>", graderId);\
-  autoPrint("CLASS <%s>", classId);\
-  autoPrint("ASG <%s>", asgId);\
-  autoPrint("PATH <%s>", currentPath());\
+  debugPrint("STACK TRACE", NULL);\
+  debugPrint("GRADER <%s>", graderId);\
+  debugPrint("CLASS <%s>", classId);\
+  debugPrint("ASG <%s>", asgId);\
+  debugPrint("PATH <%s>", currentPath());\
   exit(1);\
 }
 #define STRLEN 509
@@ -54,6 +55,11 @@ int tempInt = 0;
 char tempString[STRLEN];
 
 int main(int argc, char **argv) {
+
+  // Get grader info
+  strcpy(graderId, getlogin());
+  strcpy(graderName, realName(getlogin()));
+  autoPrint("GRADER <%s> (%s) loaded", graderId, graderName);
 
   // Do arguments (unfinshed)
   // TODO: Actually support arguments
@@ -102,7 +108,11 @@ int main(int argc, char **argv) {
 
   // Get bin info
   // TODO: Replace following line
-  strcpy(binDir, "/afs/cats.ucsc.edu/users/m/avalera/bin");
+  {
+    strcpy(binDir, "/afs/cats.ucsc.edu/users/m/");
+    strcat(binDir, graderId);
+    strcat(binDir, "/bin");
+  }
   /*
      if(! changeDir("bin")) autoError("INFO Could not find bin directory", NULL);
      strcpy(binDir, currentDir());
@@ -124,13 +134,14 @@ int main(int argc, char **argv) {
   if(! asgList) autoError("ASG <%s> could not be listed", asgId);
   if(! asgList->first) autoError("ASG <%s> is empty", asgId);
 
-  // Get grader info
-  strcpy(graderId, getlogin());
-  strcpy(graderName, realName(getlogin()));
-  changeDir(binDir);
+  // Get grader config
+  // TODO: Remove following line
+  assertChangeDir(binDir); //
+  if(! changeDir(binDir)) autoError("BIN not accessible", NULL);
   assertChangeDir("autoconfig");
-  graderTable = tableRead(graderId);
-  autoPrint("GRADER <%s> (%s) loaded", graderId, graderName);
+  strcpy(tempString, graderId);
+  strcat(tempString, ".config");
+  graderTable = tableRead(tempString);
 
   // Get assignment config (within .auto)
   changeDir(binDir);
