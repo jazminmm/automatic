@@ -5,6 +5,7 @@
 */
 
 #include "List.h"
+#include "Table.h"
 
 void autoGrade(char *dir);
 

@@ -2,7 +2,7 @@
 
 # Makefile for compiling the automatic grading utility called Auto
 
-SRC = Auto.c List.c Stack.c
+SRC = Auto.c List.c Stack.c Table.c
 DEP = $(SRC:.c=.h) Extra.h
 OBJ = $(SRC:.c=.o)
 EXE = Auto
