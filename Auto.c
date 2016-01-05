@@ -9,7 +9,7 @@
 // printf() alternative for debug purposes
 #define debugPrint(format, args...) {\
   if(DEBUG) {\
-    printf("debug: ");\
+    printf("dbug: ");\
     printf(format, args);\
     printf("\n");\
   }\
@@ -22,8 +22,12 @@
 }
 // autoPrint() alternative that kills program
 #define autoError(format, args...) {\
-  autoPrint("ERROR", NULL);\
+  autoPrint("ERROR resulting in program crash", NULL);\
   autoPrint(format, args);\
+  autoPrint("GRADER <%s>", graderId);\
+  autoPrint("CLASS <%s>", classId);\
+  autoPrint("ASG <%s>", asgId);\
+  autoPrint("PATH <%s>", currentPath());\
   exit(1);\
 }
 #define STRLEN 509
@@ -34,11 +38,11 @@ char cwd[STRLEN]; // Always contains current directory structure
 // Constants
 char* exeId = "auto";
 char* exeName = "automatic";
-char exeDir[STRLEN]; // Folder where executable is found
 char graderId[STRLEN]; // icherdak
 char graderName[STRLEN]; // Isaak Joseph Cherdak
+char exeDir[STRLEN]; // Folder where executable is found
+char binDir[STRLEN]; // Folder for bin
 char classId[STRLEN]; // cmps012b-pt.s15
-char classDir[STRLEN]; // Folder for class TODO: Still needed?
 char asgId[STRLEN]; // pa1
 char asgDir[STRLEN]; // Folder for assignment
 List* listAll; // List of all students
@@ -61,17 +65,17 @@ int main(int argc, char **argv) {
   if(argc >= 3 && argv[argc - 2][1] != "-") strcpy(classId, argv[argc - 2]);
   strcpy(asgId, argv[argc - 1]);
 
-  // Get exeDir
+  // Get executable info
   strcpy(exeDir, currentPath());
   if(! streq(currentDir(), exeName)) {
-    if(! changeDir(exeName)) autoError("Could not find executable directory", NULL);
+    if(! changeDir(exeName)) autoError("INFO Could not access executable directory", NULL);
     changeDir("..");
     strcat(exeDir, "/");
     strcat(exeDir, exeName);
   }
   debugPrint("exeDir: %s", exeDir);
 
-  // Get classId
+  // Get class info
   if(streq(classId, "")) {
     changeDir(".");
     chdir("/");
@@ -98,24 +102,32 @@ int main(int argc, char **argv) {
   }
   changeDir(classId);
   debugPrint("currentDir: %s", currentDir());
-  strcpy(classDir, currentPath());
-  changeDir(classDir);
   autoPrint("CLASS <%s> loaded", classId);
+  
+  // Get bin info
+  // TODO: Replace following line
+  strcpy(binDir, "afs/cats.ucsc.edu/users/m/avalera/bin");
+  /*
+  if(! changeDir("bin")) autoError("INFO Could not find bin directory", NULL);
+  strcpy(binDir, currentDir());
+  changeDir("..");
+  */
+  autoPrint("BIN loaded", NULL);
 
-  // Move to assignment directory
+  // Get asg info
   if(! changeDir(asgId)) {
+    autoPrint("INFO loading possible assignments", NULL);
     system("ls -d */"); // print out all possible directories
     autoError("ASG <%s> does not exist", asgId);
   }
   autoPrint("ASG <%s> loaded", asgId);
   debugPrint("currentDir: %s", currentDir());
-  strcpy(asgDir, classDir);
-  strcat(asgDir, "/");
-  strcat(asgDir, asgId);
+  strcpy(asgDir, currentPath());
+
+  // Generate lists
   listAll = dirList();
   if(! listAll) autoError("ASG <%s> could not be listed", asgId);
   if(! listAll->first) autoError("ASG <%s> is empty", asgId);
-
 
   // Get assignment config (within .auto)
   assertChangeDir(".auto");
@@ -233,7 +245,7 @@ void autoShell() {
   char cmd[1024];
   while(student) {
     changeDir(asgDir);
-    if(! changeDir(student->sdir)) autoError("USER <%s> could not be opened", student->sdir);
+    if(! changeDir(student->sdir)) autoError("STUDENT <%s> could not be opened", student->sdir);
     autoPrompt(cmd);
 
     if(streq(cmd, "exit")) {
