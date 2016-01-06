@@ -5,13 +5,15 @@
 
 #include "Auto.h"
 #define streq(str1, str2) (strlen(str1) == strlen(str2)) && (strcmp(str1, str2) == 0)
-#define DEBUG false // for debugPrint()
+#define DEBUG true // for debugPrint()
 // printf() alternative for debug purposes
 #define debugPrint(format, args...) {\
   if(DEBUG) {\
+    printf("\x1b[33m");\
     printf("dbug: ");\
     printf(format, args);\
     printf("\n");\
+    printf("\x1b[0m");\
   }\
 }
 // printf() alternative for normal use
@@ -22,6 +24,7 @@
 }
 // autoPrint() alternative that kills program
 #define autoError(format, args...) {\
+  printf("\x1b[31m");\
   autoPrint("ERROR resulting in program crash", NULL);\
   autoPrint(format, args);\
   debugPrint("STACK TRACE", NULL);\
@@ -31,7 +34,7 @@
   debugPrint("PATH <%s>", currentPath());\
   exit(1);\
 }
-#define STRLEN 509
+#define STRLEN 509 
 
 // Global vars
 char cwd[STRLEN]; // Always contains current directory structure
@@ -70,12 +73,11 @@ int main(int argc, char **argv) {
   // Get executable info
   strcpy(exeDir, currentPath());
   if(! streq(currentDir(), exeName)) {
-    if(! changeDir(exeName)) autoError("INFO Could not access executable directory", NULL);
+    requireChangeDir(exeName);
+    strcpy(exeDir, currentPath());
     changeDir("..");
-    strcat(exeDir, "/");
-    strcat(exeDir, exeName);
   }
-  debugPrint("exeDir: %s", exeDir);
+  debugPrint("EXE <%s> loaded", exeDir);
 
   // Get class info
   if(streq(classId, "")) {
@@ -83,27 +85,22 @@ int main(int argc, char **argv) {
     chdir("/");
     strtok(cwd, "/");
     char* temp = cwd; // afs
-    debugPrint("temp: ", temp);
     for(tempInt = 0; tempInt < 3; tempInt++) {
       // 0: cats.ucsc.edu
       // 1: class
       // 2: cmps012b-pt.s15
       chdir(temp);
       temp = strtok(NULL, "/");
-      debugPrint("temp: %s", temp);
-      chdir(temp);
-      // TODO: Replace following line
-      if(tempInt == 1 && ! streq(temp, "users")) autoError("CLASS not specified, and not installed in a valid class directory.", NULL);
-      // if(tempInt == 1 && ! streq(temp, "class")) autoError("CLASS not specified, and not installed in a valid class directory.", NULL);
+      // TODO: Uncomment following
+      // if(tempInt == 1 && ! streq(temp, "class")) autoError("CLASS not passed as argument and not implicitly known", NULL);
     }
     strcpy(classId, temp);
   } else {
-    // TODO: Replace following line
-    changeDir("/afs/cats.ucsc.edu/users");
-    //changeDir("/afs/cats.ucsc.edu/class");
+    changeDir("/afs/cats.ucsc.edu/class");
   }
-  changeDir(classId);
-  debugPrint("currentDir: %s", currentDir());
+  if(! changeDir(classId)) {
+    
+  }
   autoPrint("CLASS <%s> loaded", classId);
 
   // Get bin info
@@ -118,16 +115,11 @@ int main(int argc, char **argv) {
      strcpy(binDir, currentDir());
      changeDir("..");
      */
-  autoPrint("BIN loaded", NULL);
+  debugPrint("BIN <%s> loaded", binDir);
 
   // Get asg info
-  if(! changeDir(asgId)) {
-    autoPrint("INFO loading possible assignments", NULL);
-    system("ls -d */"); // print out all possible directories
-    autoError("ASG <%s> does not exist", asgId);
-  }
+  requireChangeDir(asgId);
   autoPrint("ASG <%s> loaded", asgId);
-  debugPrint("currentDir: %s", currentDir());
   strcpy(asgDir, currentPath());
 
   asgList = dirList();
@@ -148,7 +140,7 @@ int main(int argc, char **argv) {
   assertChangeDir(classId);
   sprintf(tempString, "%s.init", graderId);
   hasInitScript = fileExists(tempString);
-  if(hasInitScript) debugPrint("InitScript exists", NULL);
+  if(hasInitScript) debugPrint("INIT <%s> loaded", tempString);
   changeDir("..");
 
   // Run shell
@@ -156,6 +148,7 @@ int main(int argc, char **argv) {
 
   // Free data
   listDestroy(asgList);
+  tableDestroy(graderTable);
   return 0;
 
   /*
@@ -191,7 +184,7 @@ char* realName(char* id) {
 bool changeDir(char* dir) {
   int ret = chdir(dir);
   getcwd(cwd, sizeof(cwd));
-  debugPrint(ret == 0 ? "cd: %s suceeded" : "cd: %s failed", dir);
+  debugPrint(ret == 0 ? "DIR <%s> loaded" : "DIR <%s> failed to load", dir);
   return ret == 0;
 }
 
@@ -203,9 +196,19 @@ void assertChangeDir(char* dir) {
     sprintf(cmd, "mkdir %s", dir);
     system(cmd);
     changeDir(dir);
-    debugPrint("mkdir: %s", dir);
+    debugPrint("DIR <%s> created", dir);
   }
-  debugPrint("cd: %s", dir);
+}
+
+// @ param dir: directory to move to
+// Version of changeDir() that exits program if nonexistent
+void requireChangeDir(char* dir) {
+  if(! changeDir(dir)) {
+    autoPrint("INFO: Could not find directory <%s>", dir);
+    autoPrint("INFO: Listing directories in <%s>", currentDir());
+    system("ls -d */");
+    autoError("DIR <%s> could not be accessed", dir);
+  }
 }
 
 // @return current directory path

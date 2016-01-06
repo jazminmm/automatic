@@ -23,6 +23,8 @@ bool changeDir(char *dir);
 
 void assertChangeDir(char *dir);
 
+void requireChangeDir(char *dir);
+
 char* currentPath();
 
 char* currentDir();
