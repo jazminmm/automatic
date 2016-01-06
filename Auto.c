@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 
   // Do arguments (unfinshed)
   // TODO: Actually support arguments
-  if(argc == 1) autoError("Usage: %s [flags] [class] assignment", exeId);
+  if(argc == 1) autoError("USAGE %s [flags] [class] assignment", exeId);
   if(argc >= 3 && argv[argc - 2][1] != "-") strcpy(classId, argv[argc - 2]);
   strcpy(asgId, argv[argc - 1]);
 
@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
     changeDir("/afs/cats.ucsc.edu/class");
   }
   if(! changeDir(classId)) {
-    
+
   }
   autoPrint("CLASS <%s> loaded", classId);
 
@@ -204,8 +204,8 @@ void assertChangeDir(char* dir) {
 // Version of changeDir() that exits program if nonexistent
 void requireChangeDir(char* dir) {
   if(! changeDir(dir)) {
-    autoPrint("INFO: Could not find directory <%s>", dir);
-    autoPrint("INFO: Listing directories in <%s>", currentDir());
+    autoPrint("INFO could not find directory <%s>", dir);
+    autoPrint("INFO listing directories in <%s>", currentDir());
     system("ls -d */");
     autoError("DIR <%s> could not be accessed", dir);
   }
@@ -220,7 +220,7 @@ char* currentPath() {
 // @return current directory name
 // Warning: Uses strtok()
 char* currentDir() {
-  changeDir(".");
+  getcwd(cwd, sizeof(cwd));
   char* dir = strtok(cwd, "/");
   while(true) {
     char* temp = strtok(NULL, "/");
