@@ -10,14 +10,13 @@ List *listCreate() {
   List *l = malloc(sizeof(List));
   l->first = NULL;
   l->last = NULL;
+  l->id = calloc(101, sizeof(char));
   return l;
 }
 
 //d is the struct dirent and ndir is the number of items in the struct
 List *listCreateFromDirent(struct dirent **d, int ndir) {
-  List *l = malloc(sizeof(List));
-  l->first = NULL;
-  l->last = NULL;
+  List *l = listCreate();
   for (int i = 0; i < ndir; i++) if (strncmp(".", d[i]->d_name, 2) && strncmp("..", d[i]->d_name, 3)) {
     if (chdir(d[i]->d_name) == 0) {
       chdir("..");
@@ -62,6 +61,7 @@ void listDestroy(List *l) {
   total++;
   free(temp);
   total++;
+  free(l->id);
   free(l);
   //printf("freed %d Nodes and a list\n", total);
 }
@@ -133,14 +133,13 @@ void listInsert(List *l, char *sdir) {
 }
 
 List *listCopy(List *l) {
-  List *n = malloc(sizeof(List));
-  n->first = NULL;
-  n->last = NULL;
+  List *n = listCreate();
   if (!listGetSize(l)) return n;
   Node *temp = l->first;
   while (temp) {
     listAppend(n, temp->sdir);
   }
+  sprintf(n->id, "%s", l->id);
   return n;
 }
 
@@ -208,4 +207,45 @@ List *dirList() {
   for (int i = 0; i < ndir; i++) free (fileList[i]);
   free (fileList);
   return l;
+}
+
+void listSetID(List *l, char *id) {
+  sprintf(l->id, "%s", id);
+}
+
+char *listGetID(List *l) {
+  return (l->id[0] == '\0' ? NULL : l->id);
+}
+
+List *listRead(char *id) {
+  List *l = listCreate();
+  listSetID(l, id);
+  char temp[501];
+  sprintf(temp, "%s.autolist", id);
+  FILE *fp = fopen(id, "r");
+  if (!fp) {
+    printf("%s.autotable didn't exist when calling listRead()\n", id);
+    exit(1);
+  }
+  while(fgets(temp, 500, fp)) {
+    listAppend(l, temp);
+  }
+  fclose(fp);
+  return l;
+}
+
+void listWrite(List *l) {
+  char temp[501];
+  char *id = listGetID(l);
+  if (!id) {
+    printf("List with no set ID passed to listWrite()\n");
+    exit(1);
+  }
+  sprintf(temp, "%s.autolist", id);
+  FILE *fp = fopen(temp, "w");
+  for (Node *tempn = l->first; tempn; tempn = tempn->next) {
+    fprintf(fp, "%s\n", tempn->sdir);
+  }
+  fclose(fp);
+  listDestroy(l);
 }

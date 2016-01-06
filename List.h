@@ -18,6 +18,7 @@ typedef struct Node {
 typedef struct List {
   Node *first;
   Node *last;
+  char *id;
 } List;
 
 // create a blank list
@@ -50,5 +51,17 @@ void listFilter(List *l, char *dir, char *filter);
 
 // returns a list of directories based off listCreateFromDirent and the current directory
 List *dirList();
+
+// sets the id of l to be id
+void listSetID(List *l, char *id);
+
+// returns the id or NULL if one hasn't been set
+char *listGetID(List *l);
+
+// returns a List that contains all Strings in id.autolist. Also sets the list's id to id
+List *listRead(char *id);
+
+// writes a list to it's 
+void listWrite(List *l);
 
 #endif //_LIST_H_
