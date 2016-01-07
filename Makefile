@@ -65,6 +65,6 @@ push : commit
 # Test (only on ucsc dir)
 
 test : $(EXE)
-	$(EXE) ${USER}
+	$(EFLAGS) $(EXE) ${USER}
 
 .PHONY: clean spotless pull commit push log test -m -g -t -r
