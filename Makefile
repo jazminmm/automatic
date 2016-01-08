@@ -6,7 +6,7 @@ SRC = Auto.c List.c Stack.c Table.c
 DEP = $(SRC:.c=.h) Extra.h
 OBJ = $(SRC:.c=.o)
 EXE = Auto
-EFLAGS = valgrind
+EFLAGS = valgrind --leak-check=full --show-leak-kinds=all
 DIR = pa1
 CFLAGS = -c -Wall -Werror -Wextra -std=c99
 CFLAGS = -c -Wall -Wextra -std=c99

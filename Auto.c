@@ -58,10 +58,11 @@ int tempInt = 0;
 char tempString[STRLEN];
 
 int main(int argc, char **argv) {
-
+  
   // Get grader info
-  strcpy(graderId, getlogin());
-  strcpy(graderName, realName(getlogin()));
+  char *login = loginName();
+  strcpy(graderId, login);
+  strcpy(graderName, realName(login));
   autoPrint("GRADER <%s> (%s) loaded", graderId, graderName);
 
   // Do arguments (unfinshed)
@@ -110,11 +111,13 @@ int main(int argc, char **argv) {
     strcat(binDir, graderId);
     strcat(binDir, "/bin");
   }
+
   /*
      if(! changeDir("bin")) autoError("INFO Could not find bin directory", NULL);
      strcpy(binDir, currentDir());
      changeDir("..");
      */
+
   debugPrint("BIN <%s> loaded", binDir);
 
   // Get asg info
@@ -123,6 +126,7 @@ int main(int argc, char **argv) {
   strcpy(asgDir, currentPath());
 
   asgList = dirList();
+
   if(! asgList) autoError("ASG <%s> could not be listed", asgId);
   if(! asgList->first) autoError("ASG <%s> is empty", asgId);
 
@@ -169,6 +173,11 @@ int main(int argc, char **argv) {
      return 1;
      }
      */
+}
+
+char *loginName() {
+  struct passwd *pw = getpwuid(getuid());
+  return pw->pw_name;
 }
 
 // @param id: Unix username

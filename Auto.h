@@ -17,6 +17,8 @@ void restoreGrades(char *dir); //buggy
 
 void testGrade(char *dir);
 
+char *loginName();
+
 char* realName(char *id);
 
 bool changeDir(char *dir);

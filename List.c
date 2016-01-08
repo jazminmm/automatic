@@ -46,20 +46,20 @@ int listGetPos(List *l, Node *cur) {
 void listDestroy(List *l) {
   if (!l) return;
   if (l->first == l->last) {
-    free(l->first);
+    deleteNode(l->first);
     free(l);
     return;
   }
   int total = 0;
   Node *temp;
   for(temp = l->first->next; temp->next; temp = temp->next) {
-    free(temp->prev);
+    deleteNode(temp->prev);
     total++;
     //printf("%s\n", temp->sdir);
   }
-  free(temp->prev);
+  deleteNode(temp->prev);
   total++;
-  free(temp);
+  deleteNode(temp);
   total++;
   free(l->id);
   free(l);
