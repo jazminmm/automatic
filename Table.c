@@ -100,6 +100,58 @@ char *tableGet(Table *t, char *key) {
   return NULL;
 }
 
+int tableGetInt(Table *t, char *key) {
+  char *value = tableGet(t, key);
+  char extest[401] = {}; // this is one way to test if something is an integer apparently
+  sprintf(extest, "%d", atoi(value));
+  if (!value || strcmp(extest, value)) return 0;
+  return (atoi(value));
+}
+
+float tableGetFloat(Table *t, char *key) {
+  char *value = tableGet(t, key);
+  char extest[401] = {}; // this is one way to test if something is a float apparently
+  sprintf(extest, "%f", atof(value));
+  if (!value || strcmp(extest, value)) return 0.0;
+  return (atof(value));
+}
+
+bool tableGetBool(Table *t, char *key) {
+  char *value = tableGet(t, key);
+  if (!value) return false;
+  return !strcmp(value, "true");
+}
+
+char **tableGetStringArray(Table *t, char *key) {
+  char *value = tableGet(t, key);
+  if (!value) return NULL;
+  int vlen = strlen(value);
+  int alen = 1; //start it at one for purposes of algorithm in use
+  for (int i = 0; i < vlen; i++) {
+    if (value[i] == ' ') alen++;
+  }
+  char **ns = calloc(alen, sizeof(char *));
+  int cloc = 0; // current location in value
+  for (int i = 0; i < alen; i++) {
+    ns[i] = calloc(vlen, sizeof(char));
+    for (int j = 0; cloc < vlen; j++) {
+      if (value[cloc] == ' ') {
+        ns[i][j] = '\0';
+        cloc++;
+        break;
+      }
+      ns[i][j] = value[cloc++];
+    }
+  }
+  return ns;
+}
+
+void freeStringArray(char **sa) {
+  int len = sizeof(sa)/sizeof(char *);
+  for (int i = 0; i < len; i++) free(sa[i]);
+  free(sa);
+}
+
 void tablePut(Table *t, char *key, char *value) {
   if (!t) {
     printf("NULL HashTable passed to tablePut()\n");

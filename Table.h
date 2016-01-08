@@ -45,6 +45,21 @@ bool tableContains(Table *t, char *key);
 //Gets value of corresponding key, or null if nonexistent
 char *tableGet(Table *t, char *key);
 
+// Returns 0 if not an integer or the integer in question
+int tableGetInt(Table *t, char *key);
+
+// Returns 0.0 if not float or the float in question
+float tableGetFloat(Table *t, char *key);
+
+// Returns false unless string is literally "true"
+bool tableGetBool(Table *t, char *key);
+
+// Returns an array of character pointers or NULL if nothing exists with key. Becarefule to free the resulting char **. You can use the following function have this done for you
+char **tableGetStringArray(Table *t, char *key);
+
+// Frees a two dimmension allocated char ** such as the one returned from the previous function.
+void freeStringArray(char **sa);
+
 //Puts (key, value) into table, overwriting existing, copies strings (don't just save pointers), deletes entry if value is null
 // Note this function first makes a call to remove to force the overwrite condition
 void tablePut(Table *t, char *key, char *value);
