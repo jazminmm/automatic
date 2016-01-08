@@ -1,5 +1,13 @@
 #include "Table.h"
 
+int tableSize(Table *t) {
+  if (!t) {
+    printf("Passed NULL Table to tableSize()\n");
+    exit(1);
+  }
+  return t->size;
+}
+
 Table *tableRead(char *id) {
   Table *t;
   char temp[501] = {};
@@ -7,40 +15,38 @@ Table *tableRead(char *id) {
   FILE *fp = fopen(temp, "r");
   if (fp) {
     t = tableCreate(INIT_TABLE_SIZE); // we start with a size of 2
+    tableSetID(t, id);
     while(fgets(temp, 500, fp)) {
       char key[101] = {};
       char value[401] = {};
       sscanf(temp, "%s: %s", key, value);
-
-
-      /*int i;
-        for (i = 0; temp[i] != ':'; i++) {
-        key[i] = temp[i];
-        }
-        int j = 0;
-        for (i += 2; temp[i] != '\n' && temp[i] != '\0'; i++) {
-        value[j++] = temp[i];
-        }
-        */
       tablePut(t, key, value);
     }
     fclose(fp);
-  } else if (true) {
+  } else if (false) {
     printf("%s.autotable doesn't exist when calling tableRead()\n", id);
     exit(1);
+  } else {
+    return tableCreate(INIT_TABLE_SIZE);
   }
   return t;
 }
 
-void tableWrite(Table *t, char *id) {
+void tableWrite(Table *t) {
   if (!t) {
     printf("NULL Table passed to tableWrite()\n");
     exit(1);
   }
   int count = 0;
   char temp[501] = {};
-  sprintf(temp, "%s.autotable", id);
+  sprintf(temp, "%s.autotable", t->id);
   FILE *fp = fopen(temp, "r");
+  if (fp) { // Force deletion of file
+    fclose(fp);
+    unlink(temp); // file delete function
+  }
+  if (tableSize(t) == 0) return; // We force delete the filewhen the table is empty
+  fp = fopen(temp, "w");
   for (int i = 0; i < t->size; i++) {
     if (!t->table[i]) continue;
     for (HashListNode *tempn = t->table[i]->first; tempn; tempn = tempn->next) {
@@ -51,6 +57,22 @@ void tableWrite(Table *t, char *id) {
   }
   fclose(fp);
   tableDestroy(t);
+}
+
+char *tableGetID(Table *t) {
+  if (!t) {
+    printf("Passed NULL Table to tableSize()\n");
+    exit(1);
+  }
+  return t->id;
+}
+
+void tableSetID(Table *t, char *id) {
+  if (!t) {
+    printf("Passed NULL Table to tableSize()\n");
+    exit(1);
+  }
+  sprintf(t->id, "%s", id);
 }
 
 bool tableContains(Table *t, char *key) {
@@ -108,6 +130,7 @@ void tableDestroy(Table *t) {
     if (count == t->size) break;
   }
   free(t->table);
+  free(t->id);
   free(t);
 }
 
@@ -222,6 +245,7 @@ Table *tableCreate(int size) {
   Table *t = malloc(sizeof(Table));
   t->table = calloc(size, sizeof(HashList *));
   t->size = 0;
+  t->id = calloc(101, sizeof(char));
   return t;
 }
 

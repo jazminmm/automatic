@@ -21,13 +21,23 @@ typedef struct HashList {
 typedef struct Table {
   HashList **table;
   int size;
+  char *id;
 } Table;
+
+// Returns size of the table
+int tableSize(Table *t);
 
 //Creates table from id.autotable file in current directory, or creates blank table
 Table *tableRead(char *id);
 
 //Writes table to id.autotable file in current directory, and destroys table
-void tableWrite(Table *t, char *id);
+void tableWrite(Table *t);
+
+// Returns the pointer to the ID. Becareful to not modify the resulting string!!!
+char *tableGetID(Table *t);
+
+// Copies id to the subsequent field in the Table
+void tableSetID(Table *t, char *id);
 
 //Returns whether key has an entry (not NULL)
 bool tableContains(Table *t, char *key);
