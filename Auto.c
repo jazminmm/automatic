@@ -24,7 +24,7 @@
 }
 // autoPrint() alternative that kills program
 #define autoError(format, args...) {\
-  printf("\x1b[31m");\
+  printf("\a\x1b[31m");\
   autoPrint("ERROR resulting in program crash", NULL);\
   autoPrint(format, args);\
   debugPrint("STACK TRACE", NULL);\
@@ -267,7 +267,7 @@ void autoShell() {
     autoPrompt(cmd);
 
     if(streq(cmd, "exit")) {
-      exit(0);
+      return;
     } else if(streq(cmd, "next")) {
       if(student->next) {
         student = student->next;
