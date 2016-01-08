@@ -37,6 +37,7 @@
   debugPrint("GRADER <%s>", graderId);\
   debugPrint("CLASS <%s>", classId);\
   debugPrint("ASG <%s>", asgId);\
+  debugPrint("PATH <%s>", currentPath());\
   exit(1);\
 }
 #define STRLEN 509 
@@ -226,7 +227,7 @@ void requireChangeDir(char* dir) {
 
 // @return current directory path
 char* currentPath() {
-  changeDir(".");
+  getcwd(cwd, sizeof(cwd));
   return cwd;
 }
 
