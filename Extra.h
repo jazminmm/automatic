@@ -19,6 +19,8 @@
 
 #define _GNU_SOURCE
 
+#define MAX_INT 100000000001
+
 #define max(x, y) (x > y ? x : y)
 
 #define min(x, y) (x < y ? x : y)

@@ -143,12 +143,7 @@ List *listCopy(List *l) {
   return n;
 }
 
-void deleteNode(List *l, Node *n) {
-  if (!n) return;
-  if (n == l->first) l->first = (n->next ? n->next : NULL);
-  if (n == l->last) l->last = (n->prev ? n->prev : NULL);
-  if (n->prev) n->prev->next = n->next;
-  if (n->next) n->next->prev = n->prev;
+void deleteNode(Node *n) {
   free(n->sdir);
   free(n);
 }
@@ -191,7 +186,7 @@ void listFilter(List *l, char *dir,  char *filter) {
     //printf("In directory %s file %s %s but it %s in the filtered list\n", temp->sdir, temps, fp ? "exists" : "doesn't exist", !mode ? "should exist" : "shouldn't exist");
     if ((fp && mode) || (!fp && !mode)) {
       Node *temp1 = temp->next;
-      deleteNode(l, temp);
+      listRemove(l, temp->sdir);
       temp = temp1;
       fcount++;
     } else temp = temp->next;
@@ -248,4 +243,49 @@ void listWrite(List *l) {
   }
   fclose(fp);
   listDestroy(l);
+}
+
+void listRemove(List *l, char *sdir) {
+  if (!l) {
+    printf("Passed NULL List to listRemove()\n");
+    exit(1);
+  }
+  if (!listContains(l, sdir)) {
+    printf("Tried to remove a non-existent String in listRemove()\n");
+    exit(1);
+  }
+  Node *temp = NULL;
+  for (temp = l->first; temp; temp = temp->next) {
+    if (!strcmp(temp->sdir, sdir)) break;
+  }
+  if (temp == l->first) l->first = l->first->next;
+  if (temp == l->last) l->last = l->last->prev;
+  if (temp->prev) temp->prev->next = temp->next;
+  if (temp->next) temp->next->prev = temp->prev;
+  deleteNode(temp);
+}
+
+bool listContains(List *l, char *sdir) {
+  if (!l) {
+    printf("Passed NULL List to listContains()\n");
+    exit(1);
+  }
+  for (Node *temp = l->first; temp; temp = temp->next) {
+    if (!strcmp(temp->sdir, sdir)) return true;
+  }
+  return false;
+}
+
+void listString(List *l, char *buf) {
+  if (!l) {
+    printf("Passed NULL List to listString()\n");
+    exit(1);
+  }
+  strncpy(buf, "", strlen(buf));
+  if (!l->first) return;
+  for (Node *n = l->first; n; n = n->next) {
+    strcat(buf, n->sdir);
+    strcat(buf, "\n");
+  }
+  //return;
 }

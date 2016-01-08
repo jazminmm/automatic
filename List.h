@@ -45,7 +45,7 @@ void listInsert(List *l, char *sdir);
 
 List *listCopy(List *l);
 
-void deleteNode(List *l, Node *n);
+void deleteNode(Node *n);
 
 void listFilter(List *l, char *dir, char *filter);
 
@@ -63,5 +63,14 @@ List *listRead(char *id);
 
 // writes a list to it's 
 void listWrite(List *l);
+
+// Removes sdir from L
+void listRemove(List *l, char *sdir);
+
+// Returns whether L contains sdir
+bool listContains(List *l, char *sdir);
+
+// overwrites buf to be listPrint as a String
+void listString(List *l, char *buf);
 
 #endif //_LIST_H_
