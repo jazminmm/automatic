@@ -22,6 +22,12 @@
   printf(format, args);\
   printf("\n");\
 }
+// autoPrint() alternative used for warnings
+#define autoWarn(format, args...) {\
+  printf("\x1b[35m");\
+  autoPrint(format, args);\
+  printf("\x1b[0m");\
+}
 // autoPrint() alternative that kills program
 #define autoError(format, args...) {\
   printf("\a\x1b[31m");\
@@ -58,11 +64,11 @@ int tempInt = 0;
 char tempString[STRLEN];
 
 int main(int argc, char **argv) {
-  
+
   // Get grader info
-  char *login = loginName();
-  strcpy(graderId, login);
-  strcpy(graderName, realName(login));
+  strcpy(graderId, getlogin());
+  //loginName(graderId);
+  realName(graderName, graderId);
   autoPrint("GRADER <%s> (%s) loaded", graderId, graderName);
 
   // Do arguments (unfinshed)
@@ -152,7 +158,7 @@ int main(int argc, char **argv) {
 
   // Free data
   listDestroy(asgList);
-  tableDestroy(graderTable);
+  tableDestroy(graderTable); 
   return 0;
 
   /*
@@ -175,16 +181,15 @@ int main(int argc, char **argv) {
      */
 }
 
-char *loginName() {
+void loginName(char* output) {
   struct passwd *pw = getpwuid(getuid());
-  return pw->pw_name;
+  strcpy(output, getpwuid(getuid())->pw_name);
 }
 
 // @param id: Unix username
 // @return Full name of user
-char* realName(char* id) {
-  struct passwd *pw = getpwnam(id);
-  return pw->pw_gecos;
+void realName(char* output, char* id) {
+  strcpy(output, getpwnam(id)->pw_gecos);
 }
 
 // @param dir: directory to move to
@@ -205,7 +210,7 @@ void assertChangeDir(char* dir) {
     sprintf(cmd, "mkdir %s", dir);
     system(cmd);
     changeDir(dir);
-    debugPrint("DIR <%s> created", dir);
+    autoWarn("DIR <%s> created", dir);
   }
 }
 
@@ -213,8 +218,8 @@ void assertChangeDir(char* dir) {
 // Version of changeDir() that exits program if nonexistent
 void requireChangeDir(char* dir) {
   if(! changeDir(dir)) {
-    autoPrint("INFO could not find directory <%s>", dir);
-    autoPrint("INFO listing directories in <%s>", currentDir());
+    autoWarn("INFO could not find directory <%s>", dir);
+    autoWarn("INFO listing directories in <%s>", currentDir());
     system("ls -d */");
     autoError("DIR <%s> could not be accessed", dir);
   }
@@ -222,7 +227,7 @@ void requireChangeDir(char* dir) {
 
 // @return current directory path
 char* currentPath() {
-  changeDir(".");
+  getcwd(cwd, sizeof(cwd));
   return cwd;
 }
 

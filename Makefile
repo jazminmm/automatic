@@ -15,6 +15,8 @@ LFLAGS = -o
 ELFLAGS = -lm
 LINK = gcc
 
+include git.mk
+
 #compile the executable
 $(EXE) : $(OBJ)
 	$(LINK) $(LFLAGS) $@ $(MAN) $^ $(ELFLAGS)
@@ -46,24 +48,7 @@ clean :
 spotless : clean
 	rm -f $(EXE)
 
-# Git stuff
-
-pull :
-	git $@ origin master
-
-commit : pull spotless
-	git add --all
-	git $@
-
-log :
-	git $@ --graph --oneline -10
-
-push : commit
-	git $@
-	make log
-
 # Test (only on ucsc dir)
-
 test : $(EXE)
 	$(EFLAGS) $(EXE) ${USER}
 
