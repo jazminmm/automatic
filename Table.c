@@ -97,7 +97,6 @@ char *tableGet(Table *t, char *key) {
   /*for (HashListNode temp = t->table[hash]->first; temp; temp = temp->next) {
     if (!strcmp(temp->key, key)) return temp->value;
   }*/
-  return NULL;
 }
 
 int tableGetInt(Table *t, char *key) {
@@ -122,6 +121,25 @@ bool tableGetBool(Table *t, char *key) {
   return !strcmp(value, "true");
 }
 
+List *tableGetList(Table *t, char *key) {
+  char *value = tableGet(t, key);
+  if (!value) return NULL;
+  List *l = listCreate();
+  int count = 0;
+  int i = 0;
+  char tok[strlen(value)];
+  while(value[count] != '\0') {
+    for (i = 0; value[count] != ' ' && value[count] != '\0'; i++) {
+      tok[i] = value[count++];
+    }
+    count++;
+    tok[++i] = '\0';
+    listAppend(l, tok);
+    if (value[count - 1] == '\0') break; // account for the possibility of a string of size n + 2 followed by size n: '....\0' -> '...\0.\0'
+  }
+  return l;
+}
+/*
 char **tableGetStringArray(Table *t, char *key) {
   char *value = tableGet(t, key);
   if (!value) return NULL;
@@ -151,6 +169,7 @@ void freeStringArray(char **sa) {
   for (int i = 0; i < len; i++) free(sa[i]);
   free(sa);
 }
+*/
 
 void tablePut(Table *t, char *key, char *value) {
   if (!t) {

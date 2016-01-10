@@ -4,6 +4,7 @@
 #define _TABLE_H_
 
 #include "Extra.h"
+#include "List.h"
 
 #define INIT_TABLE_SIZE 2
 
@@ -54,11 +55,15 @@ float tableGetFloat(Table *t, char *key);
 // Returns false unless string is literally "true"
 bool tableGetBool(Table *t, char *key);
 
+// Returns a list of Strings which are basically thr value tokenized by the white space character or NULL if value is NULL
+List *tableGetList(Table *t, char *key);
+/*
 // Returns an array of character pointers or NULL if nothing exists with key. Becarefule to free the resulting char **. You can use the following function have this done for you
 char **tableGetStringArray(Table *t, char *key);
 
 // Frees a two dimmension allocated char ** such as the one returned from the previous function.
 void freeStringArray(char **sa);
+*/
 
 //Puts (key, value) into table, overwriting existing, copies strings (don't just save pointers), deletes entry if value is null
 // Note this function first makes a call to remove to force the overwrite condition
