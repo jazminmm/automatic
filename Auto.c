@@ -432,7 +432,7 @@ void testGrade(char *dir) {
   } else if (strncmp(temps1, "-co", 4) == 0) {
     system("more out*");
   } else if (strncmp(temps1, "-pos", 5) == 0) {
-    printf("Your current position is %d out of %d\n", listGetPos(l, temp), listGetSize(l));
+    printf("Your current position is %d out of %d\n", listGetPos(l), listGetSize(l));
   } else if (strncmp(temps1, "-ftr", 5) == 0) {
     printf("Please enter the name of the text file you would like to filter for (add '!' to front of name to make it filter to directories without the file): ");
     fgets(temps1, 500, stdin);

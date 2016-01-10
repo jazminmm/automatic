@@ -15,8 +15,6 @@ LFLAGS = -o
 ELFLAGS = -lm
 LINK = gcc
 
-include git.mk
-
 #compile the executable
 $(EXE) : $(OBJ)
 	$(LINK) $(LFLAGS) $@ $(MAN) $^ $(ELFLAGS)
@@ -53,3 +51,6 @@ test : $(EXE)
 	$(EFLAGS) $(EXE) ${USER}
 
 .PHONY: clean spotless pull commit push log test -m -g -t -r
+
+#where you put this before caused it to be the default target
+include git.mk

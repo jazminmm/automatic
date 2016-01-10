@@ -18,6 +18,7 @@ typedef struct Node {
 typedef struct List {
   Node *first;
   Node *last;
+  Node *cur;
   char *id;
 } List;
 
@@ -31,8 +32,8 @@ void listPrint(List *l);
 
 int listGetSize(List *l);
 
-//d is the struct dirent and ndir is the number of items in the struct
-int listGetPos(List *l, Node *cur);
+// This returns the position (1 - listGetSize(l)). returns -1 if current is NULL
+int listGetPos(List *l);
 
 void listDestroy(List *l);
 
@@ -64,7 +65,7 @@ List *listRead(char *id);
 // writes a list to it's 
 void listWrite(List *l);
 
-// Removes sdir from L
+// Removes sdir from L. WARNING: you are responsible for handling cursors that point to freed blocks!
 void listRemove(List *l, char *sdir);
 
 // Returns whether L contains sdir
@@ -72,5 +73,17 @@ bool listContains(List *l, char *sdir);
 
 // overwrites buf to be listPrint as a String
 void listString(List *l, char *buf);
+
+// For teh following four: Will attempt to move to location specified or print a note if not possible
+void listMoveFront(List *l);
+
+void listMoveBack(List *l);
+
+void listMoveNext(List *l);
+
+void listMovePrev(List *l);
+
+// Returns the String at the current Node or NULL
+char *listGetCur(List *l);
 
 #endif //_LIST_H_

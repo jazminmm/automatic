@@ -10,6 +10,7 @@ List *listCreate() {
   List *l = malloc(sizeof(List));
   l->first = NULL;
   l->last = NULL;
+  l->cur = NULL;
   l->id = calloc(101, sizeof(char));
   return l;
 }
@@ -37,10 +38,17 @@ int listGetSize(List *l) {
   return total;
 }
 
-int listGetPos(List *l, Node *cur) {
-  int total = 0;
-  for(Node *temp = l->first; temp->next && temp != cur; temp = temp->next) total++;
-  return total + 1;
+int listGetPos(List *l) {
+  if (!l) {
+    printf("NULL list passed to listGetPos()\n");
+    exit(1);
+  }
+  if (!l->cur) {
+    return -1;
+  }
+  int total = 1;
+  for(Node *temp = l->first; temp && temp != l->cur; temp = temp->next) total++;
+  return total;
 }
 
 void listDestroy(List *l) {
@@ -288,4 +296,69 @@ void listString(List *l, char *buf) {
     strcat(buf, "\n");
   }
   //return;
+}
+
+void listMoveFront(List *l) {
+  if (!l) {
+    printf("NULL List passed to listMoveFront()\n");
+    exit(1);
+  }
+  if (listGetSize(l) == 0) {
+    printf("Can't set current in an empty list\n");
+    return;
+  }
+  l->cur = l->first;
+}
+
+void listMoveBack(List *l) {
+  if (!l) {
+    printf("NULL List passed to listMoveBack()\n");
+    exit(1);
+  }
+  if (listGetSize(l) == 0) {
+    printf("Can't set current in an empty list\n");
+    return;
+  }
+  l->cur = l->last;
+}
+
+void listMoveNext(List *l) {
+  if (!l) {
+    printf("NULL List passed to listMoveNext()\n");
+    exit(1);
+  }
+  if (!l->cur) {
+    printf("Can't move current relative to itself if it is NULL\n");
+    return;
+  }
+  if (listGetPos(l) == listGetSize(l)) {
+    printf("Already at back of list\n");
+    return;
+  }
+  l->cur = l->cur->next;
+}
+
+void listMovePrev(List *l) {
+  if (!l) {
+    printf("NULL List passed to listMovePrev()\n");
+    exit(1);
+  }
+  if (!l->cur) {
+    printf("Can't move current relative to itself if it is NULL\n");
+    return;
+  }
+  if (listGetPos(l) == 1) {
+    printf("Already at front of list\n");
+    return;
+  }
+  l->cur = l->cur->prev;
+}
+
+char *listGetCur(List *l) {
+  if (!l) {
+    printf("NULL List passed to listGetCur()\n");
+    exit(1);
+  }
+  if (!l->cur) return NULL;
+  return l->cur->sdir;
 }
