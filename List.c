@@ -298,60 +298,64 @@ void listString(List *l, char *buf) {
   //return;
 }
 
-void listMoveFront(List *l) {
+bool listMoveFront(List *l) {
   if (!l) {
     printf("NULL List passed to listMoveFront()\n");
     exit(1);
   }
   if (listGetSize(l) == 0) {
-    printf("Can't set current in an empty list\n");
-    return;
+    //printf("Can't set current in an empty list\n");
+    return false;
   }
   l->cur = l->first;
+  return true;
 }
 
-void listMoveBack(List *l) {
+bool listMoveBack(List *l) {
   if (!l) {
     printf("NULL List passed to listMoveBack()\n");
     exit(1);
   }
   if (listGetSize(l) == 0) {
-    printf("Can't set current in an empty list\n");
-    return;
+    //printf("Can't set current in an empty list\n");
+    return false;
   }
   l->cur = l->last;
+  return true;
 }
 
-void listMoveNext(List *l) {
+bool listMoveNext(List *l) {
   if (!l) {
     printf("NULL List passed to listMoveNext()\n");
     exit(1);
   }
   if (!l->cur) {
-    printf("Can't move current relative to itself if it is NULL\n");
-    return;
+    //printf("Can't move current relative to itself if it is NULL\n");
+    return false;
   }
   if (listGetPos(l) == listGetSize(l)) {
-    printf("Already at back of list\n");
-    return;
+    //printf("Already at back of list\n");
+    return false;
   }
   l->cur = l->cur->next;
+  return true;
 }
 
-void listMovePrev(List *l) {
+bool listMovePrev(List *l) {
   if (!l) {
     printf("NULL List passed to listMovePrev()\n");
     exit(1);
   }
   if (!l->cur) {
-    printf("Can't move current relative to itself if it is NULL\n");
-    return;
+    //printf("Can't move current relative to itself if it is NULL\n");
+    return false;
   }
   if (listGetPos(l) == 1) {
-    printf("Already at front of list\n");
-    return;
+    //printf("Already at front of list\n");
+    return false;
   }
   l->cur = l->cur->prev;
+  return true;
 }
 
 char *listGetCur(List *l) {

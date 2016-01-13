@@ -75,13 +75,13 @@ bool listContains(List *l, char *sdir);
 void listString(List *l, char *buf);
 
 // For teh following four: Will attempt to move to location specified or print a note if not possible
-void listMoveFront(List *l);
+bool listMoveFront(List *l);
 
-void listMoveBack(List *l);
+bool listMoveBack(List *l);
 
-void listMoveNext(List *l);
+bool listMoveNext(List *l);
 
-void listMovePrev(List *l);
+bool listMovePrev(List *l);
 
 // Returns the String at the current Node or NULL
 char *listGetCur(List *l);

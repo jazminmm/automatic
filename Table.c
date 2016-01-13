@@ -322,10 +322,10 @@ Table *tableCreate(int size) {
 
 Table *rehash(Table *t) {
   if (!t) {
-    printf("NULL HashTable passed to rehash()\n");
+    printf("NULL Table passed to rehash()\n");
     exit(1);
   }
-
+  
  // Table n = tableCreate();
   return NULL;
 }
