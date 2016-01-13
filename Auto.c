@@ -273,27 +273,19 @@ bool fileExists(char* file) {
 // Auto shell loop
 // Assume start at root directory
 void autoShell() {
-  Node* student = asgList->first;
+  listMoveFront(asgList);
   char cmd[1024];
-  while(student) {
+  while(true) {
     changeDir(asgDir);
-    if(! changeDir(student->sdir)) autoError("STUDENT <%s> could not be opened", student->sdir);
+    if(! changeDir(listGetCur(asgList))) autoError("STUDENT <%s> could not be opened", listGetCur(asgList));
     autoPrompt(cmd);
 
     if(streq(cmd, "exit")) {
       return;
     } else if(streq(cmd, "next")) {
-      if(student->next) {
-        student = student->next;
-      } else {
-        student = asgList->first;
-      }
+      if(! listMoveNext(asgList)) listMoveFront(asgList);
     } else if(streq(cmd, "prev")) {
-      if(student->prev) {
-        student = student->prev;
-      } else {
-        student = asgList->last;
-      }
+      if(! listMovePrev(asgList)) listMoveBack(asgList);
     } else if(streq(cmd, "list print")) {
       listPrint(asgList);
     } else {
