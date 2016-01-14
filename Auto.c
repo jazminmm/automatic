@@ -10,17 +10,24 @@
 char cwd[STRLEN]; // Always contains current directory structure
 
 // Constants
-char* exeId = "auto";
-char* exeName = "automatic";
 char graderId[STRLEN]; // icherdak
 char graderName[STRLEN]; // Isaak Joseph Cherdak
 Table* graderTable; // User config
+
+char* exeId = "auto";
+char* exeName = "automatic";
 char exeDir[STRLEN]; // Folder where executable is found
-char binDir[STRLEN]; // Folder for bin
+
+char binDir[STRLEN]; // Folder for class bin
+
 char classId[STRLEN]; // cmps012b-pt.s15
+char classDir[STRLEN]; // Class folder path
+
 char asgId[STRLEN]; // pa1
 char asgDir[STRLEN]; // Folder for assignment
+char asgBinDir[STRLEN]; // Folder for assignment bin
 List* asgList; // List of all students
+
 bool hasInitScript = false;
 
 // Temp
@@ -68,27 +75,32 @@ int main(int argc, char **argv) {
     changeDir("/afs/cats.ucsc.edu/class");
   }
   requireChangeDir(classId);
+  strcpy(classDir, currentPath());
   autoPrint("CLASS <%s> loaded", classId);
+  debugPrint("CLASS dir <%s> loaded", classDir);
 
   // Get bin info
+  changeDir(classId);
   requireChangeDir("bin");
   strcpy(binDir, currentPath());
-  changeDir("..");
-
   debugPrint("BIN <%s> loaded", binDir);
 
   // Get asg info
+  changeDir(classId);
   requireChangeDir(asgId);
   autoPrint("ASG <%s> loaded", asgId);
   strcpy(asgDir, currentPath());
-
   asgList = dirList();
-
   if(! asgList) autoError("ASG <%s> could not be listed", asgId);
-  if(! asgList->first) autoError("ASG <%s> is empty", asgId);
+
+  // Get asgbin info
+  changeDir(binDir);
+  assertChangeDir(asgId);
+  strcpy(asgBinDir, currentPath());
+  debugPrint("ASG bin <%s> loaded", asgBinDir);
 
   // Get grader config
-  requireChangeDir(binDir); //
+  requireChangeDir(classDir);
   assertChangeDir("autoconfig");
   strcpy(tempString, graderId);
   strcat(tempString, ".config");
