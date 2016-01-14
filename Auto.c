@@ -6,6 +6,9 @@
 #include "Auto.h"
 #include "Extra.h"
 
+#define PREFIX_STUDENT student_
+#define PREFIX_DEDUCT deduct_
+
 // Global vars
 char cwd[STRLEN]; // Always contains current directory structure
 
@@ -33,6 +36,11 @@ List* asgList; // List of all students
 int tempInt = 0;
 char tempString[STRLEN];
 
+// Variables
+char cmd[1024];
+char studentId[STRLEN];
+Table* studentTable;
+
 int main(int argc, char **argv) {
 
   // Get grader info
@@ -40,7 +48,7 @@ int main(int argc, char **argv) {
   realName(graderName, graderId);
   autoPrint("GRADER <%s> (%s) loaded", graderId, graderName);
 
-  // Do arguments (unfinshed)
+  // Get arguments
   // TODO: Actually support arguments
   if(argc == 1) autoError("USAGE %s [flags] [class] assignment", exeId);
   if(argc >= 3 && argv[argc - 2][1] != "-") strcpy(classId, argv[argc - 2]);
@@ -111,26 +119,52 @@ int main(int argc, char **argv) {
 
   // Free data
   autoWrite();
-  return 0;
+  return 0;  
+}
 
-  /*
-     if (argc == 3) {
-     char *asg = argv[2];
-     char *method = argv[1];
-     if (strncmp(method, "-m", 3) == 0) sendMail(asg);
-     else if (strncmp(method, "-g", 3) == 0) getGrades(asg);
-     else if (strncmp(method, "-t", 3) == 0) testGrade(asg);
-     else if (strncmp(method, "-a", 3) == 0) autoGrade(asg);
-     else if (strncmp(method, "-b", 3) == 0) restoreGrades(asg);
-     else {
-     printf("Invalid method, Usage: [Method] [directory name for assignment]\n");
-     return 1;
-     }
-     } else {
-     printf("Usage: [Method] [directory name for assignment]\n");
-     return 1;
-     }
-     */
+// Auto shell loop
+// Assume start at root directory
+void autoShell() {
+  listMoveFront(asgList);
+  loadStudent();
+  while(true) {
+    autoPrompt(cmd);
+
+    if(streq(cmd, "exit")) {
+      return;
+    } else if(streq(cmd, "next")) {
+      tableWrite(studentTable);
+      if(! listMoveNext(asgList)) {
+        listMoveFront(asgList);
+        autoWarn("INFO end of list, moving to first student <%s>", currentDir());
+      }
+      loadStudent();
+    } else if(streq(cmd, "prev")) {
+      tableWrite(studentTable);
+      if(! listMovePrev(asgList)) {
+        listMoveBack(asgList);
+        autoWarn("INFO beginning of list, moving to last student <%s>", currentDir());
+      }
+      loadStudent();
+    } else if(streq(cmd, "list print")) {
+      listPrint(asgList);
+    } else {
+      system(cmd);
+    }
+  }
+}
+
+void readStudent() {
+  strcpy(studentId, listGetCur(asgList));
+  changeDir(progBinDir);
+  strcpy(tempString, PREFIX_STUDENT);
+  strcat(tempString, studentId);
+  changeDir(asgDir);
+  requireChangeDir(studentId);
+}
+
+void writeStudent() {
+  
 }
 
 void loginName(char* output) {
@@ -220,36 +254,6 @@ bool autoAsk() {
 bool fileExists(char* file) {
   struct stat buffer;
   return stat(file, &buffer) == 0;
-}
-
-// Auto shell loop
-// Assume start at root directory
-void autoShell() {
-  listMoveFront(asgList);
-  char cmd[1024];
-  while(true) {
-    changeDir(asgDir);
-    requireChangeDir(listGetCur(asgList));
-    autoPrompt(cmd);
-
-    if(streq(cmd, "exit")) {
-      return;
-    } else if(streq(cmd, "next")) {
-      if(! listMoveNext(asgList)) {
-        listMoveFront(asgList);
-        autoWarn("INFO end of list, moving to first student <%s>", currentDir());
-      }
-    } else if(streq(cmd, "prev")) {
-      if(! listMovePrev(asgList)) {
-        listMoveBack(asgList);
-        autoWarn("INFO beginning of list, moving to last student <%s>", currentDir());
-      }
-    } else if(streq(cmd, "list print")) {
-      listPrint(asgList);
-    } else {
-      system(cmd);
-    }
-  }
 }
 
 // Auto writeback on exit
