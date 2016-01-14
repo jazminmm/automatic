@@ -170,7 +170,7 @@ void requireChangeDir(char* dir) {
     autoWarn("INFO could not find directory <%s>", dir);
     autoWarn("INFO listing directories in <%s>", currentDir());
     system("ls -d */");
-    autoError("DIR <%s> could not be accessed", dir);
+    autoError("DIR <%s> not accessible", dir);
   }
 }
 
@@ -226,15 +226,21 @@ void autoShell() {
   char cmd[1024];
   while(true) {
     changeDir(asgDir);
-    if(! changeDir(listGetCur(asgList))) autoError("STUDENT <%s> could not be opened", listGetCur(asgList));
+    requireChangeDir(listGetCur(asgList));
     autoPrompt(cmd);
 
     if(streq(cmd, "exit")) {
       return;
     } else if(streq(cmd, "next")) {
-      if(! listMoveNext(asgList)) listMoveFront(asgList);
+      if(! listMoveNext(asgList)) {
+        listMoveFront(asgList);
+        autoWarn("INFO end of list, moving to first student <%s>", currentDir());
+      }
     } else if(streq(cmd, "prev")) {
-      if(! listMovePrev(asgList)) listMoveBack(asgList);
+      if(! listMovePrev(asgList)) {
+        listMoveBack(asgList);
+        autoWarn("INFO beginning of list, moving to last student <%s>", currentDir());
+      }
     } else if(streq(cmd, "list print")) {
       listPrint(asgList);
     } else {

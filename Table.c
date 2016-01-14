@@ -23,9 +23,6 @@ Table *tableRead(char *id) {
       tablePut(t, key, value);
     }
     fclose(fp);
-  } else if (false) {
-    printf("%s.autotable doesn't exist when calling tableRead()\n", id);
-    exit(1);
   } else {
     return tableCreate(INIT_TABLE_SIZE);
   }
@@ -34,8 +31,7 @@ Table *tableRead(char *id) {
 
 void tableWrite(Table *t) {
   if (!t) {
-    printf("NULL Table passed to tableWrite()\n");
-    exit(1);
+    autoError("NULL Table passed to tableWrite()", NULL);
   }
   int count = 0;
   char temp[501] = {};
@@ -60,26 +56,17 @@ void tableWrite(Table *t) {
 }
 
 char *tableGetID(Table *t) {
-  if (!t) {
-    printf("Passed NULL Table to tableSize()\n");
-    exit(1);
-  }
+  if (!t) autoError("Passed NULL Table to tableSize()", NULL);
   return t->id;
 }
 
 void tableSetID(Table *t, char *id) {
-  if (!t) {
-    printf("Passed NULL Table to tableSize()\n");
-    exit(1);
-  }
+  if (!t) autoError("Passed NULL Table to tableSize()", NULL);
   sprintf(t->id, "%s", id);
 }
 
 bool tableContains(Table *t, char *key) {
-  if (!t) {
-    printf("NULL Table passed to tableContains()\n");
-    exit(1);
-  }
+  if (!t) autoError("NULL Table passed to tableContains()", NULL);
   int hash = getHash(key, t->size);
   if (t->table[hash] && hashListFind(t->table[hash], key))
     return true;
@@ -87,10 +74,7 @@ bool tableContains(Table *t, char *key) {
 }
 
 char *tableGet(Table *t, char *key) {
-  if (!t) {
-    printf("NULL HashTable pased to tableGet()\n");
-    exit(1);
-  }
+  if (!t) autoError("NULL HashTable pased to tableGet()", NULL);
   int hash = getHash(key, t->size);
   if (!t->table[hash]) return NULL;
   return hashListFind(t->table[hash], key);
@@ -172,10 +156,7 @@ void freeStringArray(char **sa) {
 */
 
 void tablePut(Table *t, char *key, char *value) {
-  if (!t) {
-    printf("NULL HashTable passed to tablePut()\n");
-    exit(1);
-  }
+  if (!t) autoError("NULL HashTable passed to tablePut()", NULL);
   int hash = getHash(key, t->size);
   if (!t->table[hash]) {
     t->table[hash] = hashListCreate();
@@ -184,10 +165,7 @@ void tablePut(Table *t, char *key, char *value) {
 }
 
 void tableRemove(Table *t, char *key) {
-  if (!t) {
-    printf("Passed NULL Table to tableRemove()\n");
-    exit(1);
-  }
+  if(!t) autoError("Passed NULL Table to tableRemove()", NULL);
   int hash = getHash(key, t->size);
   if (!t->table[hash]) return;
   hashListRemove(t->table[hash], key);
@@ -214,10 +192,7 @@ HashList *hashListCreate() {
 
 // returns number of items that were originally in the list
 int hashListDestroy(HashList *l) {
-  if (!l) {
-    printf("NULL HashList passed to hashListDestroy()\n");
-    exit(1);
-  }
+  if (!l) autoError("NULL HashList passed to hashListDestroy()", NULL);
   int count = 0;
   if (!l->first) return count;
   if (!l->first->next) {
@@ -238,10 +213,7 @@ int hashListDestroy(HashList *l) {
 
 // currently always appends and returns true when size should increase
 bool hashListAdd(HashList *l, char *key, char *value) {
-  if (!l) {
-    printf("NULL HashList passed to hashListAdd()\n");
-    exit(1);
-  }
+  if (!l) autoError("NULL HashList passed to hashListAdd()", NULL);
   bool incsize = !hashListRemove(l, key);
   HashListNode *temp = malloc(sizeof(HashListNode));
   temp->key = calloc(101, sizeof(char));
@@ -261,10 +233,7 @@ bool hashListAdd(HashList *l, char *key, char *value) {
 
 // returns whether or not something was actually removed
 bool hashListRemove(HashList *l, char *key) {
-  if (!l) {
-    printf("NULL HashList passed to hashListRemove()\n");
-    exit(1);
-  }
+  if (!l) autoError("NULL HashList passed to hashListRemove()", NULL);
   if (!l->first || !l->last) return false;
   if (!l->first->next) {
     if (!strcmp(l->first->key, key)) {
@@ -302,10 +271,7 @@ bool hashListRemove(HashList *l, char *key) {
 }
 
 char *hashListFind(HashList *l, char *key) {
-  if (!l) {
-    printf("NULL HashList passed to hashListFind()\n");
-    exit(1);
-  }
+  if (!l) autoError("NULL HashList passed to hashListFind()", NULL);
   for (HashListNode *temp = l->first; temp; temp = temp->next)
     if (!strcmp(key, temp->key))
       return temp->value;
@@ -321,10 +287,7 @@ Table *tableCreate(int size) {
 }
 
 Table *rehash(Table *t) {
-  if (!t) {
-    printf("NULL Table passed to rehash()\n");
-    exit(1);
-  }
+  if (!t) autoError("NULL Table passed to rehash()", NULL);
   
  // Table n = tableCreate();
   return NULL;
@@ -336,4 +299,3 @@ int getHash(char *key, int len) {
   for (hash=0, i=0; i < strlen(key); ++i) hash=hash^key[i];
   return ((hash)%len);
 }
-
