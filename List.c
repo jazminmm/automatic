@@ -366,3 +366,18 @@ char *listGetCur(List *l) {
   if (!l->cur) return NULL;
   return l->cur->sdir;
 }
+
+void listConcat(List *first, List *second) {
+  if (!first) {
+    printf("first List in listConcat() is NULL\n");
+    exit(1);
+  }
+  if (!second) {
+    printf("second List in listConcat() is NULL\n");
+    exit(1);
+  }
+  for (listMoveFront(second); listGetCur(second); listMoveNext(second)) {
+    listAppend(first, listGetCur(second));
+  }
+  listDestroy(second);
+}

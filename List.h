@@ -86,4 +86,7 @@ bool listMovePrev(List *l);
 // Returns the String at the current Node or NULL
 char *listGetCur(List *l);
 
+// First will have the second concatenated, if the two id's differ, print a warning
+void listConcat(List *first, List *second);
+
 #endif //_LIST_H_
