@@ -8,6 +8,7 @@
 
 #define PREFIX_STUDENT student_
 #define PREFIX_DEDUCT deduct_
+#define PREFIX_GRADER grader_
 
 // Global vars
 char cwd[STRLEN]; // Always contains current directory structure
@@ -126,45 +127,53 @@ int main(int argc, char **argv) {
 // Assume start at root directory
 void autoShell() {
   listMoveFront(asgList);
-  loadStudent();
+  studentRead();
   while(true) {
     autoPrompt(cmd);
 
     if(streq(cmd, "exit")) {
-      return;
+      break;
     } else if(streq(cmd, "next")) {
-      tableWrite(studentTable);
+      studentWrite();
       if(! listMoveNext(asgList)) {
         listMoveFront(asgList);
         autoWarn("INFO end of list, moving to first student <%s>", currentDir());
       }
-      loadStudent();
+      studentRead();
     } else if(streq(cmd, "prev")) {
-      tableWrite(studentTable);
+      studentWrite();
       if(! listMovePrev(asgList)) {
         listMoveBack(asgList);
         autoWarn("INFO beginning of list, moving to last student <%s>", currentDir());
       }
-      loadStudent();
+      studentRead();
     } else if(streq(cmd, "list print")) {
       listPrint(asgList);
     } else {
       system(cmd);
     }
   }
+  studentWrite();
 }
 
-void readStudent() {
+void studentRead() {
   strcpy(studentId, listGetCur(asgList));
-  changeDir(progBinDir);
-  strcpy(tempString, PREFIX_STUDENT);
+  changeDir(asgBinDir);
+  strcpy(tempString, "PREFIX_STUDENT");
   strcat(tempString, studentId);
+  studentTable = tableRead(tempString);
+  tablePut(studentTable, ".id", studentId);
+  realName(tempString, studentId);
+  tablePut(studentTable, ".name", tempString);
   changeDir(asgDir);
   requireChangeDir(studentId);
 }
 
-void writeStudent() {
-  
+void studentWrite() {
+  strcpy(studentId, "null");
+  changeDir(asgBinDir);
+  tableWrite(studentTable);
+  changeDir(asgDir);
 }
 
 void loginName(char* output) {

@@ -13,6 +13,7 @@
 #include <dirent.h>
 #include <ctype.h>
 #include <math.h>
+#include <time.h>
 #include <sys/types.h>
 #include <pwd.h>
 #include <stdbool.h>

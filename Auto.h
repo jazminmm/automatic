@@ -39,4 +39,8 @@ bool fileExists(char* file);
 
 void autoShell();
 
+void studentWrite();
+
+void studentRead();
+
 void autoWrite();
