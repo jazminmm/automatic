@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
   // Get grader config
   changeDir(binDir);
   assertChangeDir("autoconfig");
-  strcpy(tempString, "grader_");
+  strcpy(tempString, "PREFIX_GRADER");
   strcat(tempString, graderId);
   graderTable = tableRead(tempString);
 
@@ -156,13 +156,15 @@ void autoShell() {
   studentWrite();
 }
 
-void studentRead() {
+void studentRead() { 
   strcpy(studentId, listGetCur(asgList));
   changeDir(asgBinDir);
   strcpy(tempString, "PREFIX_STUDENT");
   strcat(tempString, studentId);
   studentTable = tableRead(tempString);
+  debugPrint("Floating point exception before first tablePut()", NULL);
   tablePut(studentTable, ".id", studentId);
+  debugPrint("tablePut() succeeded", NULL);
   realName(tempString, studentId);
   tablePut(studentTable, ".name", tempString);
   changeDir(asgDir);
