@@ -77,7 +77,9 @@
   exit(1);\
 }
 
-#define STRLEN 509 
+#define STRLEN 509
+
+#define sizeofarray(a) (sizeof(a) / sizeof((a)[0]))
 
 extern int alphasort();
 

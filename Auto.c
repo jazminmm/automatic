@@ -26,9 +26,8 @@ char classDir[STRLEN]; // Class folder path
 char asgId[STRLEN]; // pa1
 char asgDir[STRLEN]; // Folder for assignment
 char asgBinDir[STRLEN]; // Folder for assignment bin
+Table* asgTable; // Assignment config
 List* asgList; // List of all students
-
-bool hasInitScript = false;
 
 // Temp
 int tempInt = 0;
@@ -80,13 +79,13 @@ int main(int argc, char **argv) {
   debugPrint("CLASS dir <%s> loaded", classDir);
 
   // Get bin info
-  changeDir(classId);
+  changeDir(classDir);
   requireChangeDir("bin");
   strcpy(binDir, currentPath());
   debugPrint("BIN <%s> loaded", binDir);
 
   // Get asg info
-  changeDir(classId);
+  changeDir(classDir);
   requireChangeDir(asgId);
   autoPrint("ASG <%s> loaded", asgId);
   strcpy(asgDir, currentPath());
@@ -97,29 +96,21 @@ int main(int argc, char **argv) {
   changeDir(binDir);
   assertChangeDir(asgId);
   strcpy(asgBinDir, currentPath());
+  asgTable = tableRead(asgId);
   debugPrint("ASG bin <%s> loaded", asgBinDir);
 
   // Get grader config
-  requireChangeDir(classDir);
-  assertChangeDir("autoconfig");
-  strcpy(tempString, graderId);
-  strcat(tempString, ".config");
-  graderTable = tableRead(tempString);
-
-  // Get assignment config (within .auto)
   changeDir(binDir);
-  assertChangeDir(classId);
-  sprintf(tempString, "%s.init", graderId);
-  hasInitScript = fileExists(tempString);
-  if(hasInitScript) debugPrint("INIT <%s> loaded", tempString);
-  changeDir("..");
+  assertChangeDir("autoconfig");
+  strcpy(tempString, "grader_");
+  strcat(tempString, graderId);
+  graderTable = tableRead(tempString);
 
   // Run shell
   autoShell();
 
   // Free data
-  listDestroy(asgList);
-  tableDestroy(graderTable); 
+  autoWrite();
   return 0;
 
   /*
@@ -259,6 +250,15 @@ void autoShell() {
       system(cmd);
     }
   }
+}
+
+// Auto writeback on exit
+void autoWrite() {
+  changeDir(binDir);
+  tableWrite(graderTable);
+  changeDir(asgBinDir);
+  tableWrite(asgTable);
+  listWrite(asgList);
 }
 
 void testGrade(char *dir) {
