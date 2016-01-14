@@ -4,43 +4,7 @@
  */
 
 #include "Auto.h"
-#define streq(str1, str2) (strlen(str1) == strlen(str2)) && (strcmp(str1, str2) == 0)
-#define DEBUG true // for debugPrint()
-// printf() alternative for debug purposes
-#define debugPrint(format, args...) {\
-  if(DEBUG) {\
-    printf("\x1b[33m");\
-    printf("dbug: ");\
-    printf(format, args);\
-    printf("\n");\
-    printf("\x1b[0m");\
-  }\
-}
-// printf() alternative for normal use
-#define autoPrint(format, args...) {\
-  printf("auto: ");\
-  printf(format, args);\
-  printf("\n");\
-}
-// autoPrint() alternative used for warnings
-#define autoWarn(format, args...) {\
-  printf("\x1b[35m");\
-  autoPrint(format, args);\
-  printf("\x1b[0m");\
-}
-// autoPrint() alternative that kills program
-#define autoError(format, args...) {\
-  printf("\a\x1b[31m");\
-  autoPrint("ERROR resulting in program crash", NULL);\
-  autoPrint(format, args);\
-  debugPrint("STACK TRACE", NULL);\
-  debugPrint("GRADER <%s>", graderId);\
-  debugPrint("CLASS <%s>", classId);\
-  debugPrint("ASG <%s>", asgId);\
-  debugPrint("PATH <%s>", currentPath());\
-  exit(1);\
-}
-#define STRLEN 509 
+#include "Extra.h"
 
 // Global vars
 char cwd[STRLEN]; // Always contains current directory structure
@@ -66,8 +30,7 @@ char tempString[STRLEN];
 int main(int argc, char **argv) {
 
   // Get grader info
-  strcpy(graderId, getlogin());
-  //loginName(graderId);
+  loginName(graderId);
   realName(graderName, graderId);
   autoPrint("GRADER <%s> (%s) loaded", graderId, graderName);
 
@@ -98,31 +61,19 @@ int main(int argc, char **argv) {
       // 2: cmps012b-pt.s15
       chdir(temp);
       temp = strtok(NULL, "/");
-      // TODO: Uncomment following
-      // if(tempInt == 1 && ! streq(temp, "class")) autoError("CLASS not passed as argument and not implicitly known", NULL);
+      if(tempInt == 1 && ! streq(temp, "class")) autoError("CLASS not passed as argument and not implicitly known", NULL);
     }
     strcpy(classId, temp);
   } else {
     changeDir("/afs/cats.ucsc.edu/class");
   }
-  if(! changeDir(classId)) {
-
-  }
+  requireChangeDir(classId);
   autoPrint("CLASS <%s> loaded", classId);
 
   // Get bin info
-  // TODO: Replace following line
-  {
-    strcpy(binDir, "/afs/cats.ucsc.edu/users/m/");
-    strcat(binDir, graderId);
-    strcat(binDir, "/bin");
-  }
-
-  /*
-     if(! changeDir("bin")) autoError("INFO Could not find bin directory", NULL);
-     strcpy(binDir, currentDir());
-     changeDir("..");
-     */
+  requireChangeDir("bin");
+  strcpy(binDir, currentPath());
+  changeDir("..");
 
   debugPrint("BIN <%s> loaded", binDir);
 
@@ -137,9 +88,7 @@ int main(int argc, char **argv) {
   if(! asgList->first) autoError("ASG <%s> is empty", asgId);
 
   // Get grader config
-  // TODO: Remove following line
-  assertChangeDir(binDir); //
-  if(! changeDir(binDir)) autoError("BIN not accessible", NULL);
+  requireChangeDir(binDir); //
   assertChangeDir("autoconfig");
   strcpy(tempString, graderId);
   strcat(tempString, ".config");

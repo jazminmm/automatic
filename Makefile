@@ -7,13 +7,18 @@ DEP = $(SRC:.c=.h) Extra.h
 OBJ = $(SRC:.c=.o)
 EXE = Auto
 EFLAGS = valgrind --leak-check=full --show-leak-kinds=all
-DIR = pa1
+#DIR = pa1
 CFLAGS = -c -Wall -Werror -Wextra -std=c99
 CFLAGS = -c -Wall -Wextra -std=c99
 COMP = gcc
 LFLAGS = -o
 ELFLAGS = -lm
 LINK = gcc
+
+default : install spotless
+
+install : $(EXE)
+	cp $< ..
 
 #compile the executable
 $(EXE) : $(OBJ)
@@ -47,10 +52,9 @@ spotless : clean
 	rm -f $(EXE)
 
 # Test (only on ucsc dir)
-test : $(EXE)
-	$(EFLAGS) $(EXE) ${USER}
+test : default
+	../$(EXE) lab1
 
-.PHONY: clean spotless pull commit push log test -m -g -t -r
+.PHONY: default install clean spotless test -m -g -t -r
 
-#where you put this before caused it to be the default target
 include git.mk
