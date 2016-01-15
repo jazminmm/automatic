@@ -54,6 +54,8 @@ int main(int argc, char **argv) {
   if(argc == 1) autoError("USAGE %s [flags] [class] assignment", exeId);
   if(argc >= 3 && argv[argc - 2][1] != "-") strcpy(classId, argv[argc - 2]);
   strcpy(asgId, argv[argc - 1]);
+  if(streq(asgId, "bin")) 
+    autoError("ASG <%s> invalid", asgId);
 
   // Get executable info
   strcpy(exeDir, currentPath());
@@ -76,7 +78,8 @@ int main(int argc, char **argv) {
       // 2: cmps012b-pt.s15
       chdir(temp);
       temp = strtok(NULL, "/");
-      if(tempInt == 1 && ! streq(temp, "class")) autoError("CLASS not passed as argument and not implicitly known", NULL);
+      if(tempInt == 1 && ! streq(temp, "class")) 
+        autoError("CLASS not provided, implicitly or by argument", NULL);
     }
     strcpy(classId, temp);
   } else {
@@ -99,7 +102,8 @@ int main(int argc, char **argv) {
   autoPrint("ASG <%s> loaded", asgId);
   strcpy(asgDir, currentPath());
   asgList = dirList();
-  if(! asgList) autoError("ASG <%s> could not be listed", asgId);
+  if(listGetSize(asgList) <= 0) 
+    autoError("ASG <%s> has no submissions", asgId);
 
   // Get asgbin info
   changeDir(binDir);
