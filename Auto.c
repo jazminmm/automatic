@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
   requireChangeDir(asgId);
   autoPrint("ASG <%s> loaded", asgId);
   strcpy(asgDir, currentPath());
-  asgList = dirList();
+  asgList = dirList(asgId);
   if(listGetSize(asgList) <= 0) 
     autoError("ASG <%s> has no submissions", asgId);
 
@@ -304,10 +304,10 @@ void autoWrite() {
     if(graderTable) tableWrite(graderTable);
   }
   if(changeDir(asgBinDir)) {
-    debugPrint("WARNING PLEASE SET ID's BEFORE using the write functions", NULL);
-    if(asgTable) tableDestroy(asgTable);
-    if(asgList) listDestroy(asgList);
-    return;
+    //debugPrint("WARNING PLEASE SET ID's BEFORE using the write functions", NULL);
+    //if(asgTable) tableDestroy(asgTable);
+    //if(asgList) listDestroy(asgList);
+    //return;
     if(asgTable) tableWrite(asgTable);
     if(asgList) listWrite(asgList);
   }

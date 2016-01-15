@@ -200,10 +200,11 @@ void listFilter(List *l, char *dir,  char *filter) {
   autoPrint("Successfully filtered out %d directories", fcount);
 }
 
-List *dirList() {
+List *dirList(char *id) {
   struct dirent **fileList = NULL;
   int ndir = scandir(".", &fileList, NULL, alphasort);
   List *l = listCreateFromDirent(fileList, ndir);
+  listSetID(l, id);
   for (int i = 0; i < ndir; i++) free (fileList[i]);
   free (fileList);
   return l;

@@ -51,7 +51,7 @@ void deleteNode(Node *n);
 void listFilter(List *l, char *dir, char *filter);
 
 // returns a list of directories based off listCreateFromDirent and the current directory
-List *dirList();
+List *dirList(char *id);
 
 // sets the id of l to be id
 void listSetID(List *l, char *id);
