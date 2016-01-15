@@ -22,6 +22,7 @@
   debugPrint("CLASS <%s>", classId);\
   debugPrint("ASG <%s>", asgId);\
   debugPrint("PATH <%s>", currentPath());\
+  studentWrite();\
   autoWrite();\
   exit(1);\
 }
@@ -29,6 +30,11 @@
 
 // Global vars
 char cwd[STRLEN]; // Current working directory
+char cmd[STRLEN * 2]; // Last read command
+List* cmdList;
+
+char studentId[STRLEN]; // Current student Id
+Table* studentTable; // Current student config
 
 // Constants
 char graderId[STRLEN]; // icherdak
@@ -55,10 +61,6 @@ List* asgList; // List of all students
 int tempInt = 0;
 char tempString[STRLEN];
 
-// Variables
-char cmd[1024];
-char studentId[STRLEN];
-Table* studentTable;
 
 int main(int argc, char **argv) {
 
@@ -152,7 +154,9 @@ void autoShell() {
   studentRead();
   while(true) {
     autoPrompt(cmd);
-    if(streq(cmd, "e") || streq(cmd, "exit") || cmd[0] == '\0') { // DO NOT COMPARE EOF WITH A STRING, EOF IS  CHARACTER!!!
+    if(streq(cmd, "e") || streq(cmd, "exit") || cmd[0] == '\0') {
+      autoPrint("INFO would you like to save your changes to <%s>", studentId);
+      if(autoAsk()) studentWrite();
       break;
     } else if(streq(cmd, "n")) {
       studentWrite();
@@ -174,13 +178,10 @@ void autoShell() {
       system(cmd);
     }
   }
-  studentWrite();
 }
 
 void studentRead() {
-  if (!listGetCur(asgList)) { // this currently happens if no students are in the directory
-    autoError("Current Item at start of studentRead() is NULL", NULL);
-  }
+  listGetCur(asgList);
   strcpy(studentId, listGetCur(asgList));
   changeDir(asgBinDir);
   strcpy(tempString, "PREFIX_STUDENT");
@@ -188,17 +189,17 @@ void studentRead() {
   studentTable = tableRead(tempString);
   tablePut(studentTable, ".id", studentId);
   realName(tempString, studentId);
-  //debugPrint("tablePut(studentTable, .name, %s)", tempString);
-  tablePut(studentTable, ".name", tempString); // TODO fix this segfault
-  //debugPrint("tablePut() succeeded", NULL);
+  tablePut(studentTable, ".name", tempString);
   changeDir(asgDir);
   requireChangeDir(studentId);
+  debugPrint("STUDENT <%s> loaded", studentId);
 }
 
 void studentWrite() {
+  debugPrint("STUDENT <%s> closed", studentId);
   strcpy(studentId, "null");
   changeDir(asgBinDir);
-  tableWrite(studentTable);
+  if(studentTable) tableWrite(studentTable);
   changeDir(asgDir);
 }
 
@@ -306,13 +307,10 @@ void autoWrite() {
     if(graderTable) tableWrite(graderTable);
   }
   if(changeDir(asgBinDir)) {
-    //debugPrint("WARNING PLEASE SET ID's BEFORE using the write functions", NULL);
-    //if(asgTable) tableDestroy(asgTable);
-    //if(asgList) listDestroy(asgList);
-    //return;
     if(asgTable) tableWrite(asgTable);
-    if(asgList) listWrite(asgList);
   }
+  if(asgList) listDestroy(asgList);
+  if(cmdList) listDestroy(cmdList);
 }
 
 void testGrade(char *dir) {
