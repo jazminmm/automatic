@@ -274,10 +274,10 @@ char* currentDir() {
 // Get input from user
 void autoPrompt(char* result) {
   printf("[%s@%s %s]$ ", graderId, exeId, currentDir());
-  result[0] = '\0';
-  fgets(result, 1023, stdin); //gets is bad for your health
-  if (strlen(result) < 2) return;
-  result[strlen(result) - 1] = '\0';
+  result[0] = '\0'; // fgets of an input stream does nothing if the first character is EOF so you have to write it manually
+  fgets(result, 1023, stdin); //gets() is bad for your health
+  if (strlen(result) < 2) return; //basically they typed an empty string and hit carriage return
+  result[strlen(result) - 1] = '\0'; // Always overwrite the newline at the end of the string
 }
 
 // @return result
