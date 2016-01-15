@@ -156,7 +156,10 @@ void autoShell() {
   studentWrite();
 }
 
-void studentRead() { 
+void studentRead() {
+  if (!listGetCur(asgList)) {
+    autoError("Current Item at start of studentRead() is NULL", NULL);
+  }
   strcpy(studentId, listGetCur(asgList));
   changeDir(asgBinDir);
   strcpy(tempString, "PREFIX_STUDENT");
