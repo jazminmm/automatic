@@ -152,8 +152,7 @@ void autoShell() {
   studentRead();
   while(true) {
     autoPrompt(cmd);
-
-    if(streq(cmd, "e") || streq(cmd, "exit") || streq(cmd, EOF)) {
+    if(streq(cmd, "e") || streq(cmd, "exit") || cmd[0] == '\0') { // DO NOT COMPARE EOF WITH A STRING, EOF IS  CHARACTER!!!
       break;
     } else if(streq(cmd, "n")) {
       studentWrite();
@@ -275,7 +274,10 @@ char* currentDir() {
 // Get input from user
 void autoPrompt(char* result) {
   printf("[%s@%s %s]$ ", graderId, exeId, currentDir());
-  gets(result);
+  result[0] = '\0';
+  fgets(result, 1023, stdin); //gets is bad for your health
+  if (strlen(result) < 2) return;
+  result[strlen(result) - 1] = '\0';
 }
 
 // @return result
