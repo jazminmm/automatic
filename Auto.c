@@ -188,9 +188,9 @@ void studentRead() {
   studentTable = tableRead(tempString);
   tablePut(studentTable, ".id", studentId);
   realName(tempString, studentId);
-  debugPrint("tablePut(studentTable, .name, %s)", tempString);
+  //debugPrint("tablePut(studentTable, .name, %s)", tempString);
   tablePut(studentTable, ".name", tempString); // TODO fix this segfault
-  debugPrint("tablePut() succeeded", NULL);
+  //debugPrint("tablePut() succeeded", NULL);
   changeDir(asgDir);
   requireChangeDir(studentId);
 }
@@ -303,6 +303,10 @@ void autoWrite() {
     if(graderTable) tableWrite(graderTable);
   }
   if(changeDir(asgBinDir)) {
+    debugPrint("WARNING PLEASE SET ID's BEFORE using the write functions", NULL);
+    if(asgTable) tableDestroy(asgTable);
+    if(asgList) listDestroy(asgList);
+    return;
     if(asgTable) tableWrite(asgTable);
     if(asgList) listWrite(asgList);
   }

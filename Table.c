@@ -8,6 +8,14 @@ int tableSize(Table *t) {
   return t->size;
 }
 
+int tableMaxSize(Table *t) {
+  if (!t) {
+    printf("Passed NULL Table to tableMaxSize()\n");
+    exit(1);
+  }
+  return t->maxSize;
+}
+
 Table *tableRead(char *id) {
   Table *t;
   char temp[501] = {};
@@ -161,7 +169,10 @@ void tablePut(Table *t, char *key, char *value) {
   if (!t->table[hash]) {
     t->table[hash] = hashListCreate();
   }
+  //debugPrint("Hash position is %d", hash);
+  //debugPrint("About to add %s with %s", key, value);
   if (hashListAdd(t->table[hash], key, value)) t->size++;
+  //debugPrint("Added %s with %s", key, value);
 }
 
 void tableRemove(Table *t, char *key) {
@@ -214,20 +225,24 @@ int hashListDestroy(HashList *l) {
 // currently always appends and returns true when size should increase
 bool hashListAdd(HashList *l, char *key, char *value) {
   if (!l) autoError("NULL HashList passed to hashListAdd()", NULL);
+  //debugPrint("About to hashListRemove()", NULL);
   bool incsize = !hashListRemove(l, key);
+  //debugPrint("hashListRemove() called", NULL);
   HashListNode *temp = malloc(sizeof(HashListNode));
   temp->key = calloc(101, sizeof(char));
   sprintf(temp->key, "%s", key);
+  //debugPrint("Key is now %s", temp->key);
   temp->value = calloc(401, sizeof(char));
   sprintf(temp->value, "%s", value);
   if (!l->first || !l->last) {
-    l->first = malloc(sizeof(HashListNode));
+    l->first = temp;
     l->last = l->first;
   } else {
-    l->last->next = malloc(sizeof(HashListNode));
+    l->last->next = temp;
     l->last = l->last->next;
   }
   l->last->next = NULL;
+  //debugPrint("New addition in HashList %s with %s", l->last->key, l->last->value);
   return incsize;
 }
 
@@ -236,6 +251,7 @@ bool hashListRemove(HashList *l, char *key) {
   if (!l) autoError("NULL HashList passed to hashListRemove()", NULL);
   if (!l->first || !l->last) return false;
   if (!l->first->next) {
+    //debugPrint("The first key is %s", l->first->key);
     if (!strcmp(l->first->key, key)) {
       free(l->first->key);
       free(l->first->value);
@@ -244,8 +260,10 @@ bool hashListRemove(HashList *l, char *key) {
       l->last = NULL;
       return true;
     }
+    //debugPrint("YOLOSWAG", NULL);
     return false;
   }
+  //debugPrint("Almost halfway through", NULL);
   if (!strcmp(l->first->key, key)) {
     HashListNode *temp = l->first;
     l->first = l->first->next;
@@ -254,6 +272,7 @@ bool hashListRemove(HashList *l, char *key) {
     free(temp);
     return true;
   }
+  //debugPrint("Halfway", NULL);
   HashListNode *p = l->first;
   HashListNode *c = p->next;
   while(c) {

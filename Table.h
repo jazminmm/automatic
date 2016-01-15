@@ -29,6 +29,9 @@ typedef struct Table {
 // Returns size of the table
 int tableSize(Table *t);
 
+// Returns maxSize of the table
+int tableMaxSize(Table *t);
+
 //Creates table from id.autotable file in current directory, or creates blank table
 Table *tableRead(char *id);
 
