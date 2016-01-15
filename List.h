@@ -28,6 +28,9 @@ List *listCreate();
 // create a list from a dirent struct (not including ".", and "..")
 List *listCreateFromDirent(struct dirent **d, int ndir);
 
+// Returns a list of Strings delimited by delimiters or NULL if either argument is NULL or an empty String
+List *listCreateFromToken(char *str, const char *delimiters);
+
 void listPrint(List *l);
 
 int listGetSize(List *l);

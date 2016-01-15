@@ -27,6 +27,29 @@ List *listCreateFromDirent(struct dirent **d, int ndir) {
   return l;
 }
 
+List *listCreateFromToken(char *str, const char *delimiters) {
+  if (!str || !delimiters || !strcmp(str, "") || !strcmp(delimiters, "")) {
+    debugPrint("One of the arguments to listCreateFromToken() is NULL or an empty String", NULL);
+    return NULL;
+  }
+  char temps[501] = "";
+  int tpos = 0;
+  List *l = listCreate();
+  for (int i = 0; i < strlen(str); i++) {
+    for (int j = 0; j < strlen(delimiters); j++) {
+      if (str[i] == delimiters[j]) {
+        temps[tpos] = '\0';
+        tpos = 0;
+        listAppend(l, temps);
+        i++;
+        j = 0;
+      }
+    }
+    temps[tpos++] = str[i];
+  }
+  return l;
+}
+
 void listPrint(List *l) {
   for (Node *temp = l->first; temp; temp = temp->next) printf("%s ", temp->sdir);
   printf("\n");
