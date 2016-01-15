@@ -1,11 +1,13 @@
 /*
+ * Auto.h
+ */
 
-  Auto.h
-
-*/
+#ifndef _AUTO_H
+#define _AUTO_H
 
 #include "List.h"
 #include "Table.h"
+#include "Extra.h"
 
 void autoGrade(char *dir);
 
@@ -17,10 +19,6 @@ void restoreGrades(char *dir); //buggy
 
 void testGrade(char *dir);
 
-void loginName(char* output);
-
-void realName(char* output, char *id);
-
 bool changeDir(char *dir);
 
 void assertChangeDir(char *dir);
@@ -31,11 +29,11 @@ char* currentPath();
 
 char* currentDir();
 
-void autoPrompt(char* result);
+void autoPrompt();
+
+void autoInput(char* result);
 
 bool autoAsk();
-
-bool fileExists(char* file);
 
 void autoShell();
 
@@ -44,3 +42,5 @@ void studentWrite();
 void studentRead();
 
 void autoWrite();
+
+#endif //_AUTO_H

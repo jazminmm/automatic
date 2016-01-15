@@ -4,7 +4,6 @@
  */
 
 #include "Auto.h"
-#include "Extra.h"
 
 #define PREFIX_STUDENT student_
 #define PREFIX_DEDUCT deduct_
@@ -31,7 +30,7 @@
 // Global vars
 char cwd[STRLEN]; // Current working directory
 char cmd[STRLEN * 2]; // Last read command
-List* cmdList;
+List* cmdList; // Last read command stack
 
 char studentId[STRLEN]; // Current student Id
 Table* studentTable; // Current student config
@@ -61,11 +60,10 @@ List* asgList; // List of all students
 int tempInt = 0;
 char tempString[STRLEN];
 
-
 int main(int argc, char **argv) {
 
   // Get grader info
-  loginName(graderId);
+  myId(graderId);
   realName(graderName, graderId);
   autoPrint("GRADER <%s> (%s) loaded", graderId, graderName);
 
@@ -153,7 +151,7 @@ void autoShell() {
   listMoveFront(asgList);
   studentRead();
   while(true) {
-    autoPrompt(cmd);
+    autoPrompt();
     if(streq(cmd, "e") || streq(cmd, "exit") || cmd[0] == '\0') {
       autoPrint("INFO would you like to save your changes to <%s>", studentId);
       if(autoAsk()) studentWrite();
@@ -201,23 +199,6 @@ void studentWrite() {
   changeDir(asgBinDir);
   if(studentTable) tableWrite(studentTable);
   changeDir(asgDir);
-}
-
-void loginName(char* output) {
-  struct passwd *pw = getpwuid(getuid());
-  strcpy(output, getpwuid(getuid())->pw_name);
-}
-
-// @param id: Unix username
-// @return Full name of user
-void realName(char* output, char* id) {
-  struct passwd* pwd = getpwnam(id);
-  if (pwd) {
-    strcpy(output, pwd->pw_gecos);
-  } else {
-    autoWarn("USER <%s> could not be indentified by real name", id);
-    strcpy(output, "???");
-  }
 }
 
 // @param dir: directory to move to
@@ -271,9 +252,17 @@ char* currentDir() {
   }
 }
 
+void autoPrompt() {
+  autoInput(cmd);
+  List *input = listCreateFromToken(cmd, " ");
+  if(cmdList) {
+    listConcat(cmdList, input);
+  } else cmdList = input; 
+}
+
 // @param result: string to hold result of prompt
 // Get input from user
-void autoPrompt(char* result) {
+void autoInput(char* result) {
   printf("[%s@%s %s]$ ", graderId, exeId, currentDir());
   result[0] = '\0'; // fgets of an input stream does nothing if the first character is EOF so you have to write it manually
   fgets(result, 1023, stdin); //gets() is bad for your health
@@ -284,7 +273,7 @@ void autoPrompt(char* result) {
 // @return result
 // Get boolean input from user
 bool autoAsk() {
-  char result[1024];
+  char result[STRLEN * 2];
   printf("[%s@%s %s](y/n) ", graderId, exeId, currentDir());
   gets(result);
   return streq(result, "y")
@@ -292,13 +281,6 @@ bool autoAsk() {
     || streq(result, "yes")
     || streq(result, "Yes")
     || streq(result, "YES");
-}
-
-// @param file: name of file
-// @return file existence
-bool fileExists(char* file) {
-  struct stat buffer;
-  return stat(file, &buffer) == 0;
 }
 
 // Auto writeback on exit
@@ -311,7 +293,10 @@ void autoWrite() {
   }
   if(asgList) listDestroy(asgList);
   if(cmdList) listDestroy(cmdList);
+  debugPrint("EXE safely exited", exeId);
 }
+
+/////////////////////////////////////////////////////////////////////
 
 void testGrade(char *dir) {
   if (strncmp(dir, "pa2", 4)) {

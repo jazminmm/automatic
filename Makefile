@@ -2,8 +2,8 @@
 
 # Makefile for compiling the automatic grading utility called Auto
 
-SRC = Auto.c List.c Stack.c Table.c
-DEP = $(SRC:.c=.h) Extra.h
+SRC = Auto.c Extra.c List.c Stack.c Table.c
+DEP = $(SRC:.c=.h)
 OBJ = $(SRC:.c=.o)
 EXE = Auto
 EFLAGS = valgrind --leak-check=full --show-leak-kinds=all

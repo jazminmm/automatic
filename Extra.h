@@ -75,4 +75,10 @@ extern int alphasort();
 // ex: scandir(".", &fileList, NULL, alphasort);
 extern int scandir(const char *dirname, struct dirent ***namelist, int (*select)(const struct dirent *), int (*dcomp)(const struct dirent **, const struct dirent **));
 
+void myId(char* output);
+
+bool fileExists(char* file);
+
+void realName(char* output, char* id);
+
 #endif //_EXTRA_H_
