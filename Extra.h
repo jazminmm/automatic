@@ -62,19 +62,7 @@
   printf("\a\x1b[31m");\
   autoPrint("ERROR resulting in program crash", NULL);\
   autoPrint(format, args);\
-  exit(1);\
-}
-
-// autoError() alternative that includes stack trace
-#define autoErrorStack(format, args...) {\
-  printf("\a\x1b[31m");\
-  autoPrint("ERROR resulting in program crash", NULL);\
-  autoPrint(format, args);\
-  debugPrint("STACK TRACE", NULL);\
-  debugPrint("GRADER <%s>", graderId);\
-  debugPrint("CLASS <%s>", classId);\
-  debugPrint("ASG <%s>", asgId);\
-  debugPrint("PATH <%s>", currentPath());\
+  printf("\x1b[0m");\
   exit(1);\
 }
 

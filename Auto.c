@@ -10,8 +10,25 @@
 #define PREFIX_DEDUCT deduct_
 #define PREFIX_GRADER grader_
 
+#undef autoError(format, args...)
+// autoError() alternative that includes stack trace
+#define autoError(format, args...) {\
+  printf("\a\x1b[31m");\
+  autoPrint("ERROR resulting in program crash", NULL);\
+  autoPrint(format, args);\
+  printf("\x1b[0m");\
+  debugPrint("INFO stack trace", NULL);\
+  debugPrint("GRADER <%s>", graderId);\
+  debugPrint("CLASS <%s>", classId);\
+  debugPrint("ASG <%s>", asgId);\
+  debugPrint("PATH <%s>", currentPath());\
+  autoWrite();\
+  exit(1);\
+}
+
+
 // Global vars
-char cwd[STRLEN]; // Always contains current directory structure
+char cwd[STRLEN]; // Current working directory
 
 // Constants
 char graderId[STRLEN]; // icherdak
@@ -20,16 +37,16 @@ Table* graderTable; // User config
 
 char* exeId = "auto";
 char* exeName = "automatic";
-char exeDir[STRLEN]; // Folder where executable is found
+char exeDir[STRLEN]; // Executable directory, called automatic
 
-char binDir[STRLEN]; // Folder for class bin
+char binDir[STRLEN]; // Bin directory in class folder
 
 char classId[STRLEN]; // cmps012b-pt.s15
-char classDir[STRLEN]; // Class folder path
+char classDir[STRLEN]; // Class directory
 
 char asgId[STRLEN]; // pa1
-char asgDir[STRLEN]; // Folder for assignment
-char asgBinDir[STRLEN]; // Folder for assignment bin
+char asgDir[STRLEN]; // Assignment submission directory. called pa1
+char asgBinDir[STRLEN]; // Assignment bin directory. called bin/pa1
 Table* asgTable; // Assignment config
 List* asgList; // List of all students
 
@@ -114,7 +131,7 @@ int main(int argc, char **argv) {
 
   // Get grader config
   changeDir(binDir);
-  assertChangeDir("autoconfig");
+  assertChangeDir("config");
   strcpy(tempString, "PREFIX_GRADER");
   strcat(tempString, graderId);
   graderTable = tableRead(tempString);
@@ -169,14 +186,11 @@ void studentRead() {
   strcpy(tempString, "PREFIX_STUDENT");
   strcat(tempString, studentId);
   studentTable = tableRead(tempString);
-  //debugPrint("Floating point exception before first tablePut()", NULL);
   tablePut(studentTable, ".id", studentId);
-  //debugPrint("tablePut() succeeded", NULL);
-  debugPrint("The following function will crash", NULL);
   realName(tempString, studentId);
-  debugPrint("About to start tablePut() for the second time", NULL);
-  tablePut(studentTable, ".name", tempString);
-  debugPrint("tablePut() * 2 Succeeded", NULL);
+  debugPrint("tablePut(studentTable, .name, %s)", tempString);
+  tablePut(studentTable, ".name", tempString); // TODO fix this segfault
+  debugPrint("tablePut() succeeded", NULL);
   changeDir(asgDir);
   requireChangeDir(studentId);
 }
@@ -196,8 +210,13 @@ void loginName(char* output) {
 // @param id: Unix username
 // @return Full name of user
 void realName(char* output, char* id) {
-  if (!getpwnam(id)) autoError("getpwnam(id) returns NULL pointer", NULL);
-  strcpy(output, getpwnam(id)->pw_gecos);
+  struct passwd* pwd = getpwnam(id);
+  if (pwd) {
+    strcpy(output, pwd->pw_gecos);
+  } else {
+    autoWarn("USER <%s> could not be indentified by real name", id);
+    strcpy(output, "???");
+  }
 }
 
 // @param dir: directory to move to
@@ -280,11 +299,13 @@ bool fileExists(char* file) {
 
 // Auto writeback on exit
 void autoWrite() {
-  changeDir(binDir);
-  tableWrite(graderTable);
-  changeDir(asgBinDir);
-  tableWrite(asgTable);
-  listWrite(asgList);
+  if (changeDir(binDir)) {
+    if(graderTable) tableWrite(graderTable);
+  }
+  if(changeDir(asgBinDir)) {
+    if(asgTable) tableWrite(asgTable);
+    if(asgList) listWrite(asgList);
+  }
 }
 
 void testGrade(char *dir) {
