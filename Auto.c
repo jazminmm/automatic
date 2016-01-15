@@ -38,6 +38,7 @@ Table* graderTable; // User config
 char* exeId = "auto";
 char* exeName = "automatic";
 char exeDir[STRLEN]; // Executable directory, called automatic
+Table* helpTable; // Executable help strings
 
 char binDir[STRLEN]; // Bin directory in class folder
 
@@ -152,23 +153,23 @@ void autoShell() {
   while(true) {
     autoPrompt(cmd);
 
-    if(streq(cmd, "exit")) {
+    if(streq(cmd, "e") || streq(cmd, "exit") || streq(cmd, EOF)) {
       break;
-    } else if(streq(cmd, "next")) {
+    } else if(streq(cmd, "n")) {
       studentWrite();
       if(! listMoveNext(asgList)) {
         listMoveFront(asgList);
         autoWarn("INFO end of list, moving to first student <%s>", currentDir());
       }
       studentRead();
-    } else if(streq(cmd, "prev")) {
+    } else if(streq(cmd, "p")) {
       studentWrite();
       if(! listMovePrev(asgList)) {
         listMoveBack(asgList);
         autoWarn("INFO beginning of list, moving to last student <%s>", currentDir());
       }
       studentRead();
-    } else if(streq(cmd, "list print")) {
+    } else if(streq(cmd, "l")) {
       listPrint(asgList);
     } else {
       system(cmd);

@@ -39,10 +39,7 @@ int listGetSize(List *l) {
 }
 
 int listGetPos(List *l) {
-  if (!l) {
-    printf("NULL list passed to listGetPos()\n");
-    exit(1);
-  }
+  if (!l) autoError("NULL list passed to listGetPos()", NULL);
   if (!l->cur) {
     return -1;
   }
@@ -180,7 +177,7 @@ void listFilter(List *l, char *dir,  char *filter) {
     if (fp) fclose(fp);
   }
   if (fcount == listGetSize(l)) {
-    printf("Filter wasn't applied because it would've deleted the entire list\n");
+    autoWarn("Filter wasn't applied because it would've deleted the entire list", NULL);
     return;
   }
   fcount = 0;
@@ -200,7 +197,7 @@ void listFilter(List *l, char *dir,  char *filter) {
     } else temp = temp->next;
     if (fp) fclose(fp);
   }
-  printf("Successfully filtered out %d directories\n", fcount);
+  autoPrint("Successfully filtered out %d directories", fcount);
 }
 
 List *dirList() {
@@ -226,10 +223,7 @@ List *listRead(char *id) {
   char temp[501];
   sprintf(temp, "%s.autolist", id);
   FILE *fp = fopen(id, "r");
-  if (!fp) {
-    printf("%s.autotable didn't exist when calling listRead()\n", id);
-    exit(1);
-  }
+  if (!fp) autoError("%s.autotable didn't exist when calling listRead()", id);
   while(fgets(temp, 500, fp)) {
     listAppend(l, temp);
   }
@@ -240,10 +234,7 @@ List *listRead(char *id) {
 void listWrite(List *l) {
   char temp[501];
   char *id = listGetID(l);
-  if (!id) {
-    printf("List with no set ID passed to listWrite()\n");
-    exit(1);
-  }
+  if (!id) autoError("List with no set ID passed to listWrite()", NULL);
   sprintf(temp, "%s.autolist", id);
   FILE *fp = fopen(temp, "w");
   for (Node *tempn = l->first; tempn; tempn = tempn->next) {
@@ -254,14 +245,8 @@ void listWrite(List *l) {
 }
 
 void listRemove(List *l, char *sdir) {
-  if (!l) {
-    printf("Passed NULL List to listRemove()\n");
-    exit(1);
-  }
-  if (!listContains(l, sdir)) {
-    printf("Tried to remove a non-existent String in listRemove()\n");
-    exit(1);
-  }
+  if (!l) printf("Passed NULL List to listRemove()", NULL);
+  if (!listContains(l, sdir)) autoError("Tried to remove a non-existent String %s in listRemove()", sdir);
   Node *temp = NULL;
   for (temp = l->first; temp; temp = temp->next) {
     if (!strcmp(temp->sdir, sdir)) break;
@@ -274,10 +259,7 @@ void listRemove(List *l, char *sdir) {
 }
 
 bool listContains(List *l, char *sdir) {
-  if (!l) {
-    printf("Passed NULL List to listContains()\n");
-    exit(1);
-  }
+  if (!l) autoError("Passed NULL List to listContains()", NULL);
   for (Node *temp = l->first; temp; temp = temp->next) {
     if (!strcmp(temp->sdir, sdir)) return true;
   }
@@ -285,10 +267,7 @@ bool listContains(List *l, char *sdir) {
 }
 
 void listString(List *l, char *buf) {
-  if (!l) {
-    printf("Passed NULL List to listString()\n");
-    exit(1);
-  }
+  if (!l) autoError("Passed NULL List to listString()", NULL);
   strncpy(buf, "", strlen(buf));
   if (!l->first) return;
   for (Node *n = l->first; n; n = n->next) {
@@ -299,10 +278,7 @@ void listString(List *l, char *buf) {
 }
 
 bool listMoveFront(List *l) {
-  if (!l) {
-    printf("NULL List passed to listMoveFront()\n");
-    exit(1);
-  }
+  if (!l) autoError("NULL List passed to listMoveFront()", NULL);
   if (listGetSize(l) == 0) {
     //printf("Can't set current in an empty list\n");
     return false;
@@ -312,10 +288,7 @@ bool listMoveFront(List *l) {
 }
 
 bool listMoveBack(List *l) {
-  if (!l) {
-    printf("NULL List passed to listMoveBack()\n");
-    exit(1);
-  }
+  if (!l) autoError("NULL List passed to listMoveBack()", NULL);
   if (listGetSize(l) == 0) {
     //printf("Can't set current in an empty list\n");
     return false;
@@ -325,10 +298,7 @@ bool listMoveBack(List *l) {
 }
 
 bool listMoveNext(List *l) {
-  if (!l) {
-    printf("NULL List passed to listMoveNext()\n");
-    exit(1);
-  }
+  if (!l) autoError("NULL List passed to listMoveNext()", NULL);
   if (!l->cur) {
     //printf("Can't move current relative to itself if it is NULL\n");
     return false;
@@ -342,10 +312,7 @@ bool listMoveNext(List *l) {
 }
 
 bool listMovePrev(List *l) {
-  if (!l) {
-    printf("NULL List passed to listMovePrev()\n");
-    exit(1);
-  }
+  if (!l) autoError("NULL List passed to listMovePrev()", NULL);
   if (!l->cur) {
     //printf("Can't move current relative to itself if it is NULL\n");
     return false;
@@ -359,23 +326,14 @@ bool listMovePrev(List *l) {
 }
 
 char *listGetCur(List *l) {
-  if (!l) {
-    printf("NULL List passed to listGetCur()\n");
-    exit(1);
-  }
+  if (!l) autoError("NULL List passed to listGetCur()", NULL);
   if (!l->cur) return NULL;
   return l->cur->sdir;
 }
 
 void listConcat(List *first, List *second) {
-  if (!first) {
-    printf("first List in listConcat() is NULL\n");
-    exit(1);
-  }
-  if (!second) {
-    printf("second List in listConcat() is NULL\n");
-    exit(1);
-  }
+  if (!first) autoError("first List in listConcat() is NULL", NULL);
+  if (!second) autoError("second List in listConcat() is NULL", NULL);
   for (listMoveFront(second); listGetCur(second); listMoveNext(second)) {
     listAppend(first, listGetCur(second));
   }
