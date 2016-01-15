@@ -157,7 +157,7 @@ void autoShell() {
 }
 
 void studentRead() {
-  if (!listGetCur(asgList)) {
+  if (!listGetCur(asgList)) { // this currently happens if no students are in the directory
     autoError("Current Item at start of studentRead() is NULL", NULL);
   }
   strcpy(studentId, listGetCur(asgList));
@@ -165,11 +165,14 @@ void studentRead() {
   strcpy(tempString, "PREFIX_STUDENT");
   strcat(tempString, studentId);
   studentTable = tableRead(tempString);
-  debugPrint("Floating point exception before first tablePut()", NULL);
+  //debugPrint("Floating point exception before first tablePut()", NULL);
   tablePut(studentTable, ".id", studentId);
-  debugPrint("tablePut() succeeded", NULL);
+  //debugPrint("tablePut() succeeded", NULL);
+  debugPrint("The following function will crash", NULL);
   realName(tempString, studentId);
+  debugPrint("About to start tablePut() for the second time", NULL);
   tablePut(studentTable, ".name", tempString);
+  debugPrint("tablePut() * 2 Succeeded", NULL);
   changeDir(asgDir);
   requireChangeDir(studentId);
 }
@@ -189,6 +192,7 @@ void loginName(char* output) {
 // @param id: Unix username
 // @return Full name of user
 void realName(char* output, char* id) {
+  if (!getpwnam(id)) autoError("getpwnam(id) returns NULL pointer", NULL);
   strcpy(output, getpwnam(id)->pw_gecos);
 }
 

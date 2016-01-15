@@ -22,6 +22,7 @@ typedef struct HashList {
 typedef struct Table {
   HashList **table;
   int size;
+  int maxSize;
   char *id;
 } Table;
 

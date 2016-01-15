@@ -157,7 +157,7 @@ void freeStringArray(char **sa) {
 
 void tablePut(Table *t, char *key, char *value) {
   if (!t) autoError("NULL HashTable passed to tablePut()", NULL);
-  int hash = getHash(key, t->size);
+  int hash = getHash(key, t->maxSize);
   if (!t->table[hash]) {
     t->table[hash] = hashListCreate();
   }
@@ -282,6 +282,7 @@ Table *tableCreate(int size) {
   Table *t = malloc(sizeof(Table));
   t->table = calloc(size, sizeof(HashList *));
   t->size = 0;
+  t->maxSize = size;
   t->id = calloc(101, sizeof(char));
   return t;
 }
@@ -294,8 +295,8 @@ Table *rehash(Table *t) {
 }
 
 int getHash(char *key, int len) {
-  unsigned int hash;
-  unsigned int  i;
-  for (hash=0, i=0; i < strlen(key); ++i) hash=hash^key[i];
+  int hash;
+  int  i;
+  for (hash=0, i=0; i < strlen(key); i++) hash=hash^(int)key[i];
   return ((hash)%len);
 }
