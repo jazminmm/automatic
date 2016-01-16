@@ -8,6 +8,7 @@
 #define PREFIX_STUDENT student_
 #define PREFIX_DEDUCT deduct_
 #define PREFIX_GRADER grader_
+#define PREFIX_ABBREV abbrev_
 
 #undef autoError(format, args...)
 // autoError() alternative that includes stack trace
@@ -26,7 +27,6 @@
   exit(1);\
 }
 
-
 // Global vars
 char cwd[STRLEN]; // Current working directory
 char cmd[STRLEN * 2]; // Last read command
@@ -34,11 +34,13 @@ List* cmdList; // Last read command stack
 
 char studentId[STRLEN]; // Current student Id
 Table* studentTable; // Current student config
+char* studentPrefix = "student_";
 
-// Constants
+// Memory storage
 char graderId[STRLEN]; // icherdak
 char graderName[STRLEN]; // Isaak Joseph Cherdak
 Table* graderTable; // User config
+char* graderPrefix = "grader_";
 
 char* exeId = "auto";
 char* exeName = "automatic";
@@ -56,7 +58,7 @@ char asgBinDir[STRLEN]; // Assignment bin directory. called bin/pa1
 Table* asgTable; // Assignment config
 List* asgList; // List of all students
 
-// Temp
+// Temp vars
 int tempInt = 0;
 char tempString[STRLEN];
 
@@ -133,7 +135,7 @@ int main(int argc, char **argv) {
   // Get grader config
   changeDir(binDir);
   assertChangeDir("config");
-  strcpy(tempString, "PREFIX_GRADER");
+  strcpy(tempString, graderPrefix);
   strcat(tempString, graderId);
   graderTable = tableRead(tempString);
 
@@ -182,7 +184,7 @@ void studentRead() {
   listGetCur(asgList);
   strcpy(studentId, listGetCur(asgList));
   changeDir(asgBinDir);
-  strcpy(tempString, "PREFIX_STUDENT");
+  strcpy(tempString, studentPrefix);
   strcat(tempString, studentId);
   studentTable = tableRead(tempString);
   tablePut(studentTable, ".id", studentId);
@@ -190,15 +192,16 @@ void studentRead() {
   tablePut(studentTable, ".name", tempString);
   changeDir(asgDir);
   requireChangeDir(studentId);
-  debugPrint("STUDENT <%s> loaded", studentId);
+  autoPrint("STUDENT <%s> (%s) loaded", studentId, tableGet(studentTable, ".name"));
 }
 
 void studentWrite() {
-  debugPrint("STUDENT <%s> closed", studentId);
-  strcpy(studentId, "null");
   changeDir(asgBinDir);
+  if(!studentTable) debugPrint("STUDENT <%s> did not have a table.", studentId);
   if(studentTable) tableWrite(studentTable);
   changeDir(asgDir);
+  debugPrint("STUDENT <%s> closed", studentId);
+  strcpy(studentId, "null");
 }
 
 // @param dir: directory to move to
@@ -257,7 +260,7 @@ void autoPrompt() {
   List *input = listCreateFromToken(cmd, " ");
   if(cmdList) {
     listConcat(cmdList, input);
-  } else cmdList = input; 
+  } else cmdList = input;
 }
 
 // @param result: string to hold result of prompt

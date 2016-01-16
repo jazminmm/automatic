@@ -20,6 +20,7 @@ Table *tableRead(char *id) {
   Table *t;
   char temp[501] = {};
   sprintf(temp, "%s.autotable", id);
+  debugPrint("TABLE reading from <%s>", temp);
   FILE *fp = fopen(temp, "r");
   if (fp) {
     t = tableCreate(INIT_TABLE_SIZE); // we start with a size of 2
@@ -50,10 +51,12 @@ void tableWrite(Table *t) {
     unlink(temp); // file delete function
   }
   if (tableSize(t) == 0) return; // We force delete the filewhen the table is empty
+  debugPrint("TABLE writing to <%s>", temp);
   fp = fopen(temp, "w");
   for (int i = 0; i < t->size; i++) {
     if (!t->table[i]) continue;
     for (HashListNode *tempn = t->table[i]->first; tempn; tempn = tempn->next) {
+      debugPrint("  %s: %s", tempn->key, tempn->value);
       fprintf(fp, "%s: %s", tempn->key, tempn->value);
       count++;
     }
