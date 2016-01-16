@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
       // 2: cmps012b-pt.s15
       chdir(temp);
       temp = strtok(NULL, "/");
-      if(tempInt == 1 && ! streq(temp, "class")) 
+      if(tempInt == 1 && strcmp(temp, "class")) 
         autoError("CLASS not provided, implicitly or by argument", NULL);
     }
     strcpy(classId, temp);
