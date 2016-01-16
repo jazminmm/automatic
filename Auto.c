@@ -57,10 +57,12 @@ char asgDir[STRLEN]; // Assignment submission directory. called pa1
 char asgBinDir[STRLEN]; // Assignment bin directory. called bin/pa1
 Table* asgTable; // Assignment config
 List* asgList; // List of all students
+List* asgDupList;
 
 // Temp vars
 int tempInt = 0;
 char tempString[STRLEN];
+List* tempList;
 
 int main(int argc, char **argv) {
 
@@ -121,9 +123,6 @@ int main(int argc, char **argv) {
   requireChangeDir(asgId);
   autoPrint("ASG <%s> loaded", asgId);
   strcpy(asgDir, currentPath());
-  asgList = dirList(asgId);
-  if(listGetSize(asgList) <= 0) 
-    autoError("ASG <%s> has no submissions", asgId);
 
   // Get asgbin info
   changeDir(binDir);
@@ -131,6 +130,27 @@ int main(int argc, char **argv) {
   strcpy(asgBinDir, currentPath());
   asgTable = tableRead(asgId);
   debugPrint("ASG bin <%s> loaded", asgBinDir);
+
+  // Get asglist
+  changeDir(asgDir);
+  /* Decided to just request a List function, see #14 
+  if(! tableContains(asgTable, ".directories")) 
+    tablePut(asgTable, ".directories", asgId);
+  asgList = tableGetList(asgTable, ".directories");
+  for(listMoveFront(asgList); 
+      listGetPos(asgList) < listGetSize(asgList); 
+      listMoveNext(asgList)) {
+    changeDir(classDir);
+    changeDir(listGetCur(asgList));
+    tempList = dirList();
+    if(streq(listGetCur(asgList), asgId)) {
+      
+    }
+  }
+  */
+  asgList = dirList(asgId);
+  if(listGetSize(asgList) <= 0) 
+    autoError("ASG <%s> has no submissions", asgId);
 
   // Get grader config
   changeDir(binDir);
@@ -181,8 +201,9 @@ void autoShell() {
 }
 
 void studentRead() {
-  listGetCur(asgList);
-  strcpy(studentId, listGetCur(asgList));
+  changeDir(asgDir);
+  requireChangeDir(listGetCur(asgList));
+  strcpy(studentId, currentDir());
   changeDir(asgBinDir);
   strcpy(tempString, studentPrefix);
   strcat(tempString, studentId);
@@ -191,7 +212,7 @@ void studentRead() {
   realName(tempString, studentId);
   tablePut(studentTable, ".name", tempString);
   changeDir(asgDir);
-  requireChangeDir(studentId);
+  requireChangeDir(listGetCur(asgList));
   autoPrint("STUDENT <%s> (%s) loaded", studentId, tableGet(studentTable, ".name"));
 }
 
@@ -296,6 +317,7 @@ void autoWrite() {
   }
   if(asgList) listDestroy(asgList);
   if(cmdList) listDestroy(cmdList);
+  if(tempList) listDestroy(tempList);
   debugPrint("EXE safely exited", exeId);
 }
 
