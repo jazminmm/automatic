@@ -13,3 +13,5 @@ log :
 push : commit
 	git $@
 	make log
+
+.PHONY : pull commit log push

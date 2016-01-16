@@ -6,6 +6,7 @@ SRC = Auto.c Extra.c List.c Stack.c Table.c
 DEP = $(SRC:.c=.h)
 OBJ = $(SRC:.c=.o)
 EXE = Auto
+INST = ../$(EXE)
 EFLAGS = valgrind --leak-check=full --show-leak-kinds=all
 #DIR = pa1
 CFLAGS = -c -Wall -Werror -Wextra -std=c99
@@ -18,7 +19,7 @@ LINK = gcc
 default : install spotless
 
 install : $(EXE)
-	cp $< ..
+	cp $< $(INST)
 
 #compile the executable
 $(EXE) : $(OBJ)
@@ -51,10 +52,7 @@ clean :
 spotless : clean
 	rm -f $(EXE)
 
-# Test (only on ucsc dir)
-test : default
-	../$(EXE) lab1
-
-.PHONY: default install clean spotless test -m -g -t -r
+.PHONY: default install clean spotless -m -g -t -r
 
 include git.mk
+include test.mk
