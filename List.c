@@ -223,6 +223,30 @@ void listFilter(List *l, char *dir,  char *filter) {
   autoPrint("Successfully filtered out %d directories", fcount);
 }
 
+void listItemConcat(List *l, const char *format) {
+  if (!l) autoError("NULL List passed to listItemConcat()", NULL);
+  if (!format) autoError("NULL String passed to listItemConcat()", NULL);
+  char temp[501] = "";
+  int repinst = -1;
+  for (int i = 0; i < strlen(format); i++)
+    if (format[i] == '%' && format[i+1] == 's') {
+      repinst = i;
+      break;
+    }
+  if (repinst == -1) autoError("String doesn't contain \"\%s\" in listItemConcat()", NULL);
+  if (!listMoveFront(l)) return;
+  while(1) {
+    if (repinst) strncpy(temp, format, repinst);
+    temp[repinst] = '\0';
+    strcat(temp, listGetCur(l));
+    strcat(temp, format + repinst + 2); // nothing like a little pointer arithmatic to help
+                                       // you sleep at night
+    listSetCur(l, temp);
+
+    if (!listMoveNext(l)) return;
+  }
+}
+
 List *dirList(char *id) {
   struct dirent **fileList = NULL;
   int ndir = scandir(".", &fileList, NULL, alphasort);
@@ -353,6 +377,13 @@ char *listGetCur(List *l) {
   if (!l) autoError("NULL List passed to listGetCur()", NULL);
   if (!l->cur) return NULL;
   return l->cur->sdir;
+}
+
+void listSetCur(List *l, char *ns) {
+  if (!l) autoError("NULL List passed to listSetCur()", NULL);
+  if (!ns) autoError("NULL String passed to listSetCur()", NULL);
+  if (!l->cur) return;
+  strcpy(l->cur->sdir, ns);
 }
 
 void listConcat(List *first, List *second) {

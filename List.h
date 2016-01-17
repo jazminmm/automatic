@@ -53,6 +53,11 @@ void deleteNode(Node *n);
 
 void listFilter(List *l, char *dir, char *filter);
 
+// This function rewrites all items in the list with format where it's possible to paste in
+// the original item within the new String by placing %s. This MUST happen exactly once
+// in any given String. for example: "yolo%sswag"
+void listItemConcat(List *l, const char *format);
+
 // returns a list of directories based off listCreateFromDirent and the current directory
 List *dirList(char *id);
 
@@ -88,6 +93,9 @@ bool listMovePrev(List *l);
 
 // Returns the String at the current Node or NULL
 char *listGetCur(List *l);
+
+// Attempts to set the current Node's String to be the content of ns if current exists
+void listSetCur(List *l, char *ns);
 
 // First will have the second concatenated, if the two id's differ, print a warning
 void listConcat(List *first, List *second);
