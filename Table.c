@@ -21,10 +21,10 @@ Table *tableRead(char *id) {
   char temp[501] = {};
   sprintf(temp, "%s.autotable", id);
   debugPrint("TABLE reading from <%s>", temp);
+  t = tableCreate(INIT_TABLE_SIZE); // we start with a size of 2
+  tableSetID(t, id);
   FILE *fp = fopen(temp, "r");
   if (fp) {
-    t = tableCreate(INIT_TABLE_SIZE); // we start with a size of 2
-    tableSetID(t, id);
     while(fgets(temp, 500, fp)) {
       char key[101] = {};
       char value[401] = {};
@@ -32,8 +32,6 @@ Table *tableRead(char *id) {
       tablePut(t, key, value);
     }
     fclose(fp);
-  } else {
-    return tableCreate(INIT_TABLE_SIZE);
   }
   return t;
 }
@@ -42,9 +40,10 @@ void tableWrite(Table *t) {
   if (!t) {
     autoError("NULL Table passed to tableWrite()", NULL);
   }
+  if (streq(tableGetID(t), "")) autoError("Table with no ID passed to tableWrite()", NULL);
   int count = 0;
   char temp[501] = {};
-  sprintf(temp, "%s.autotable", t->id);
+  sprintf(temp, "%s.autotable", tableGetID(t));
   FILE *fp = fopen(temp, "r");
   if (fp) { // Force deletion of file
     fclose(fp);

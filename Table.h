@@ -32,7 +32,7 @@ int tableSize(Table *t);
 // Returns maxSize of the table
 int tableMaxSize(Table *t);
 
-//Creates table from id.autotable file in current directory, or creates blank table
+//Creates table from id.autotable file in current directory, or returns blank Table
 Table *tableRead(char *id);
 
 //Writes table to id.autotable file in current directory, and destroys table
