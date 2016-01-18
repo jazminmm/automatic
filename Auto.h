@@ -31,7 +31,7 @@ char* currentDir();
 
 void autoPrompt();
 
-void autoInput(char* result);
+void autoInput(char* result, char* prompt);
 
 bool autoAsk();
 

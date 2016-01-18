@@ -46,6 +46,7 @@ char* exeId = "auto";
 char* exeName = "automatic";
 char exeDir[STRLEN]; // Executable directory, called automatic
 Table* helpTable; // Executable help strings
+Table* macroTable; // Expandable command macros -xxx
 
 char binDir[STRLEN]; // Bin directory in class folder
 
@@ -80,6 +81,8 @@ int main(int argc, char **argv) {
     autoError("ASG <%s> invalid", asgId);
 
   // Get executable info
+  helpTable = tableRead("help");
+  macroTable = tableRead("macro");
   strcpy(exeDir, currentPath());
   if(! streq(currentDir(), exeName)) {
     requireChangeDir(exeName);
@@ -277,17 +280,29 @@ char* currentDir() {
 }
 
 void autoPrompt() {
-  autoInput(cmd);
-  List *input = listCreateFromToken(cmd, " ");
-  if(cmdList) {
-    listConcat(cmdList, input);
-  } else cmdList = input;
+  autoInput(cmd, "$");
+  if(cmdList) listDestroy(cmdList);
+  debugPrint("cmd = %s", cmd);
+  cmdList = listCreateFromToken(cmd, " ");
+  listMoveFront(cmdList);
+  if(listGetCur(cmdList)[0] == '-') {
+    List *expandList = tableGetList(macroTable, listGetCur(cmdList)[1]);
+    if(expandList) {
+      listRemove(cmdList, listGetCur(cmdList));
+      listConcat(expandList, cmdList);
+      cmdList = expandList;
+    } else {
+      autoWarn("INFO could not expand macro <%s>", listGetCur(cmdList));
+      autoPrompt();
+    }
+  }
+  listPrint(cmdList);
 }
 
 // @param result: string to hold result of prompt
 // Get input from user
-void autoInput(char* result) {
-  printf("[%s@%s %s]$ ", graderId, exeId, currentDir());
+void autoInput(char* result, char* prompt) {
+  printf("[%s@%s %s]%s ", graderId, exeId, currentDir(), prompt);
   result[0] = '\0'; // fgets of an input stream does nothing if the first character is EOF so you have to write it manually
   fgets(result, 1023, stdin); //gets() is bad for your health
   if (strlen(result) < 2) return; //basically they typed an empty string and hit carriage return
@@ -298,8 +313,7 @@ void autoInput(char* result) {
 // Get boolean input from user
 bool autoAsk() {
   char result[STRLEN * 2];
-  printf("[%s@%s %s](y/n) ", graderId, exeId, currentDir());
-  gets(result);
+  autoInput(result, "(y/n)");
   return streq(result, "y")
     || streq(result, "Y")
     || streq(result, "yes")
@@ -318,6 +332,8 @@ void autoWrite() {
   if(asgList) listDestroy(asgList);
   if(cmdList) listDestroy(cmdList);
   if(tempList) listDestroy(tempList);
+  if(helpTable) tableDestroy(helpTable);
+  if(macroTable) tableDestroy(macroTable);
   debugPrint("EXE safely exited", exeId);
 }
 
