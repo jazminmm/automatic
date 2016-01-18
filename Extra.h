@@ -28,40 +28,41 @@
 
 #define strcmp(x, y) strncmp(x, y, min(strlen(x), strlen(y)))
 
-#define streq(str1, str2) (strlen(str1) == strlen(str2)) && (strcmp(str1, str2) == 0)
+#define streq(str1, str2) \
+  ((strlen(str1) == strlen(str2)) && (strcmp(str1, str2) == 0))
 
 #define DEBUG true // for debugPrint()
 
 // printf() alternative for debug purposes
-#define debugPrint(format, args...) {\
+#define debugPrint(args...) {\
   if(DEBUG) {\
     printf("\x1b[33m");\
     printf("dbug: ");\
-    printf(format, args);\
+    printf(args);\
     printf("\n");\
     printf("\x1b[0m");\
   }\
 }
 
 // printf() alternative for normal use
-#define autoPrint(format, args...) {\
+#define autoPrint(args...) {\
   printf("auto: ");\
-  printf(format, args);\
+  printf(args);\
   printf("\n");\
 }
 
 // autoPrint() alternative used for warnings
-#define autoWarn(format, args...) {\
+#define autoWarn(args...) {\
   printf("\x1b[35m");\
-  autoPrint(format, args);\
+  autoPrint(args);\
   printf("\x1b[0m");\
 }
 
 // autoPrint() alternative that kills program
-#define autoError(format, args...) {\
+#define autoError(args...) {\
   printf("\a\x1b[31m");\
   autoPrint("ERROR resulting in program crash", NULL);\
-  autoPrint(format, args);\
+  autoPrint(args);\
   printf("\x1b[0m");\
   exit(1);\
 }

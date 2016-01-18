@@ -9,8 +9,7 @@ EXE = Auto
 INST = ../$(EXE)
 EFLAGS = valgrind --leak-check=full --show-leak-kinds=all
 #DIR = pa1
-CFLAGS = -c -Wall -Werror -Wextra -std=c99
-CFLAGS = -c -Wall -std=c99 #-Wextra -Wformat-extra-args -std=c99
+CFLAGS = -c -Wall -Wno-format-extra-args -std=c99 #-Werror #-Wextra 
 COMP = gcc
 LFLAGS = -o
 ELFLAGS = -lm

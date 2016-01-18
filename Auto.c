@@ -10,14 +10,14 @@
 #define PREFIX_GRADER grader_
 #define PREFIX_ABBREV abbrev_
 
-#undef autoError(format, args...)
+#undef autoError(args...)
 // autoError() alternative that includes stack trace
-#define autoError(format, args...) {\
+#define autoError(args...) {\
   printf("\a\x1b[31m");\
-  autoPrint("ERROR resulting in program crash", NULL);\
-  autoPrint(format, args);\
+  autoPrint("ERROR resulting in program crash");\
+  autoPrint(args);\
   printf("\x1b[0m");\
-  debugPrint("INFO stack trace", NULL);\
+  debugPrint("INFO stack trace");\
   debugPrint("GRADER <%s>", graderId);\
   debugPrint("CLASS <%s>", classId);\
   debugPrint("ASG <%s>", asgId);\
@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
       chdir(temp);
       temp = strtok(NULL, "/");
       if(tempInt == 1 && strcmp(temp, "class")) 
-        autoError("CLASS not provided, implicitly or by argument", NULL);
+        autoError("CLASS not provided, implicitly or by argument");
     }
     strcpy(classId, temp);
   } else {
