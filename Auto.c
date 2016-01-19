@@ -5,11 +5,6 @@
 
 #include "Auto.h"
 
-#define PREFIX_STUDENT student_
-#define PREFIX_DEDUCT deduct_
-#define PREFIX_GRADER grader_
-#define PREFIX_ABBREV abbrev_
-
 #undef autoError(args...)
 // autoError() alternative that includes stack trace
 #define autoError(args...) {\
@@ -59,6 +54,9 @@ char asgBinDir[STRLEN]; // Assignment bin directory. called bin/pa1
 Table* asgTable; // Assignment config
 List* asgList; // List of all students
 List* asgDupList;
+
+char* keyName = ".name";
+char* keyId = ".id";
 
 // Temp vars
 int tempInt = 0;
@@ -177,11 +175,11 @@ void autoShell() {
   studentRead();
   while(true) {
     autoPrompt();
-    if(streq(cmd, "e") || streq(cmd, "exit") || cmd[0] == '\0') {
+    if(streq(cmd, "exit") || cmd[0] == '\0') {
       autoPrint("INFO would you like to save your changes to <%s>", studentId);
       if(autoAsk()) studentWrite();
       break;
-    } else if(streq(cmd, "n")) {
+    } else if(streq(cmd, "next")) {
       studentWrite();
       if(! listMoveNext(asgList)) {
         listMoveFront(asgList);
@@ -213,9 +211,9 @@ void studentRead() {
   strcpy(tempString, studentPrefix);
   strcat(tempString, studentId);
   studentTable = tableRead(tempString);
-  tablePut(studentTable, ".id", studentId);
+  tablePut(studentTable, keyId, studentId);
   realName(tempString, studentId);
-  tablePut(studentTable, ".name", tempString);
+  tablePut(studentTable, keyName, tempString);
   changeDir(asgDir);
   requireChangeDir(listGetCur(asgList));
   autoPrint("STUDENT <%s> (%s) loaded", studentId, 
@@ -284,15 +282,19 @@ char* currentDir() {
 
 void autoPrompt() {
   if(cmdList) listDestroy(cmdList);
-  cmdList = NULL; // If you do not do this, the list will not be NULL -> dangling pointer != NULL pointer
+  cmdList = NULL;
   while(! cmdList) {
     autoInput(cmd, "$");
     cmdList = listCreateFromToken(cmd, " ");
   }
+  listPrint(cmdList);
   listMoveFront(cmdList);
-  //debugPrint("First item is %s", listGetCur(cmdList));
   if(listGetCur(cmdList)[0] == '-') {
-    List *expandList = tableGetList(macroTable, listGetCur(cmdList)[1]);
+    tablePut(macroTable, "uw", "user write");
+    debugPrint("Lookup macro %s", &listGetCur(cmdList)[1]);
+    debugPrint("Result %s", tableGet(macroTable, &listGetCur(cmdList)[1]));
+    List *expandList = tableGetList(macroTable, &listGetCur(cmdList)[1]);
+    listPrint(expandList);
     if(expandList) {
       listRemove(cmdList, listGetCur(cmdList));
       listConcat(expandList, cmdList);
