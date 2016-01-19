@@ -176,12 +176,8 @@ void autoShell() {
   studentRead();
   while(true) {
     autoPrompt();
-<<<<<<< HEAD
     optimizeTables();
-    if(streq(cmd, "e") || streq(cmd, "exit") || cmd[0] == '\0') {
-=======
     if(commanded("exit") || cmd[0] == '\0') {
->>>>>>> 9bd39e12624e83559eaed39c49df82c060402600
       autoPrint("INFO would you like to save your changes to <%s>", studentId);
       if(autoAsk()) studentWrite();
       break;
