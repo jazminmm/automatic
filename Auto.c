@@ -5,11 +5,6 @@
 
 #include "Auto.h"
 
-#define PREFIX_STUDENT student_
-#define PREFIX_DEDUCT deduct_
-#define PREFIX_GRADER grader_
-#define PREFIX_ABBREV abbrev_
-
 #undef autoError(args...)
 // autoError() alternative that includes stack trace
 #define autoError(args...) {\
@@ -26,6 +21,7 @@
   autoWrite();\
   exit(1);\
 }
+#define commanded(arg) streq(listGetCur(cmdList), arg)
 
 // Global vars
 char cwd[STRLEN]; // Current working directory
@@ -59,6 +55,9 @@ char asgBinDir[STRLEN]; // Assignment bin directory. called bin/pa1
 Table* asgTable; // Assignment config
 List* asgList; // List of all students
 List* asgDupList;
+
+char* keyName = "user.name";
+char* keyId = "user.id";
 
 // Temp vars
 int tempInt = 0;
@@ -177,12 +176,16 @@ void autoShell() {
   studentRead();
   while(true) {
     autoPrompt();
+<<<<<<< HEAD
     optimizeTables();
     if(streq(cmd, "e") || streq(cmd, "exit") || cmd[0] == '\0') {
+=======
+    if(commanded("exit") || cmd[0] == '\0') {
+>>>>>>> 9bd39e12624e83559eaed39c49df82c060402600
       autoPrint("INFO would you like to save your changes to <%s>", studentId);
       if(autoAsk()) studentWrite();
       break;
-    } else if(streq(cmd, "n")) {
+    } else if(commanded("next")) {
       studentWrite();
       if(! listMoveNext(asgList)) {
         listMoveFront(asgList);
@@ -190,7 +193,7 @@ void autoShell() {
             currentDir());
       }
       studentRead();
-    } else if(streq(cmd, "p")) {
+    } else if(commanded("prev")) {
       studentWrite();
       if(! listMovePrev(asgList)) {
         listMoveBack(asgList);
@@ -198,7 +201,7 @@ void autoShell() {
             currentDir());
       }
       studentRead();
-    } else if(streq(cmd, "l")) {
+    } else if(commanded("list")) {
       listPrint(asgList);
     } else {
       system(cmd);
@@ -219,13 +222,13 @@ void studentRead() {
   strcpy(tempString, studentPrefix);
   strcat(tempString, studentId);
   studentTable = tableRead(tempString);
-  tablePut(studentTable, ".id", studentId);
+  tablePut(studentTable, keyId, studentId);
   realName(tempString, studentId);
-  tablePut(studentTable, ".name", tempString);
+  tablePut(studentTable, keyName, tempString);
   changeDir(asgDir);
   requireChangeDir(listGetCur(asgList));
   autoPrint("STUDENT <%s> (%s) loaded", studentId, 
-      tableGet(studentTable, ".name"));
+      tableGet(studentTable, keyName));
 }
 
 void studentWrite() {
@@ -290,15 +293,20 @@ char* currentDir() {
 
 void autoPrompt() {
   if(cmdList) listDestroy(cmdList);
-  cmdList = NULL; // If you do not do this, the list will not be NULL -> dangling pointer != NULL pointer
+  cmdList = NULL;
   while(! cmdList) {
     autoInput(cmd, "$");
+    debugPrint("Running listCreateFromToken(\"%s\")", cmd);
     cmdList = listCreateFromToken(cmd, " ");
   }
+  listPrint(cmdList);
   listMoveFront(cmdList);
-  //debugPrint("First item is %s", listGetCur(cmdList));
   if(listGetCur(cmdList)[0] == '-') {
-    List *expandList = tableGetList(macroTable, listGetCur(cmdList)[1]);
+    tablePut(macroTable, "uw", "user write");
+    debugPrint("Literal lookup %s", tableGet(macroTable, "uw"));
+    debugPrint("Lookup macro %s", &listGetCur(cmdList)[1]);
+    debugPrint("Result %s", tableGet(macroTable, &listGetCur(cmdList)[1]));
+    List *expandList = tableGetList(macroTable, &listGetCur(cmdList)[1]);
     if(expandList) {
       listRemove(cmdList, listGetCur(cmdList));
       listConcat(expandList, cmdList);
@@ -318,7 +326,7 @@ void autoInput(char* result, char* prompt) {
   printf("[%s@%s %s]%s ", graderId, exeId, currentDir(), prompt);
   result[0] = '\0';
   fgets(result, 1023, stdin);
-  if (strlen(result) < 2) {
+  if (strlen(result) < 1) {
     debugPrint("autoInput() detected newline");
     return;
   }
