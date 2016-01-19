@@ -78,7 +78,10 @@ void tablePut(Table *t, char *key, char *value);
 //Removes a key value pair from the table. This doesn't require that the key already exist, it simply enforces it being removed
 void tableRemove(Table *t, char *key);
 
-//Frees table, all entries, all strings within entries
+// Clears the table without destroying it
+void tableClear(Table *t);
+
+// Frees table, all entries, all strings within entries
 void tableDestroy(Table *t);
 
 // creates a HashList and initializes appropriate pointers
@@ -99,8 +102,8 @@ char *hashListFind(HashList *l, char *key);
 // Creates a table with the specified size
 Table *tableCreate(int size);
 
-// Returns a Table rehashed at double the size of the one given (also destroys the one given)
-Table *rehash(Table *t);
+// Makes the Table rehashed at double the size of what it was before (also destroys the one given)
+void rehash(Table *t);
 
 // Hash Function... Found online
 int getHash(char *key, int len);

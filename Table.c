@@ -186,7 +186,9 @@ void tablePut(Table *t, char *key, char *value) {
   //debugPrint("About to add %s with %s", key, value);
   if(hashListAdd(t->table[hash], key, value)) t->size++;
   //debugPrint("Added %s with %s", key, value);
-  //if (tableSize(t) >= tableMaxSize(t)) t = rehash(t);
+  //debugPrint("key is %s : value is %s", key, value);
+  if (tableSize(t) == tableMaxSize(t)) rehash(t);
+  //debugPrint("YOLOSWAG");
 }
 
 void tableRemove(Table *t, char *key) {
@@ -196,13 +198,21 @@ void tableRemove(Table *t, char *key) {
   hashListRemove(t->table[hash], key);
 }
 
-void tableDestroy(Table *t) {
+void tableClear(Table *t) {
   int count = 0;
   for (int i = 0; i < t->size; i++) {
     if(!t->table[i]) continue;
     count += hashListDestroy(t->table[i]);
     if(count == t->size) break;
   }
+  for (int i = 0; i < tableMaxSize(t); i++) t->table[i] = NULL;
+  t->size = 0;
+  tableSetID(t, "");
+  //autoError("Finished tableClear()");
+}
+
+void tableDestroy(Table *t) {
+  tableClear(t);
   free(t->table);
   free(t->id);
   free(t);
@@ -320,24 +330,39 @@ Table *tableCreate(int size) {
   return t;
 }
 
-Table *rehash(Table *t) {
+void rehash(Table *t) {
   if(!t) autoError("NULL Table passed to rehash()");
-  Table *n = tableCreate(2*tableMaxSize(t));
+  Table *n = tableCreate(tableMaxSize(t) * 2);
   tableSetID(n, tableGetID(t));
-
   int count = 0;
   for (int i = 0; i < tableMaxSize(t); i++) {
     if (!t->table[i]) continue;
     for (HashListNode *temp = t->table[i]->first; temp; temp = temp->next) {
+      //debugPrint("Copying key %s : value %s", temp->key, temp->value);
       tablePut(n, temp->key, temp->value);
       count++;
-      //debugPrint("Placing key: %s, value: %s in rehashed Table of size %d and maxSize %d", temp->key, temp->value, tableSize(n), tableMaxSize(n));
+      //debugPrint("Placing key: %s, value: %s in Table of size %d and maxSize %d", temp->key, temp->value, tableSize(n), tableMaxSize(n));
     }
     if (count == tableSize(t)) break;
   }
-  tableDestroy(t);
-  //tablePrintAll(n, "New table: key: %s, value: %s\n");
-  return n;
+  tableClear(t);
+  t->maxSize = n->maxSize;
+  free(t->table);
+  t->table = calloc(tableMaxSize(t), sizeof(HashList *));
+  tableSetID(t, tableGetID(n));
+  count = 0;
+  for (int i = 0; i < tableMaxSize(n); i++){
+    //debugPrint("I IS %d", i);
+    if (!n->table[i]) continue;
+    for (HashListNode *temp = n->table[i]->first; temp; temp = temp->next) {
+      tablePut(t, temp->key, temp->value);
+      count++;
+    }
+    if (count == tableSize(n)) break;
+  }
+  //tableDestroy(n);
+  //tablePrintAll(t, "New table: key: %s, value: %s\n");
+  //autoError("Successful rehash");
 }
 
 int getHash(char *key, int len) {
