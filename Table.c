@@ -332,8 +332,40 @@ int getHash(char *key, int len) {
   return ((hash)%len);
 }
 
+int hashListPrint(HashList *l, const char *format) {
+  int count = 0;
+  for (HashListNode *temp = l->first; temp; temp = temp->next) {
+    if (temp->key[0] != '.') printf(format, temp->key, temp->value);
+    count++;
+  }
+  return count;
+}
+
+int hashListPrintAll(HashList *l, const char *format) {
+  int count = 0;
+  for (HashListNode *temp = l->first; temp; temp = temp->next) {
+    printf(format, temp->key, temp->value);
+    count++;
+  }
+  return count;
+}
+
 void tablePrint(Table *t, const char *format) {
+  int count = 0;
+  for (int i = 0; i < tableMaxSize(t); i++) {
+    if (count == tableSize(t)) break;
+    if (t->table[i]) {
+      count += hashListPrint(t->table[i], format);
+    }
+  }
+}
 
-
-
+void tablePrintAll(Table *t, const char *format) {
+  int count = 0;
+  for (int i = 0; i < tableMaxSize(t); i++) {
+    if (count == tableSize(t)) break;
+    if (t->table[i]) {
+      count += hashListPrintAll(t->table[i], format);
+    }
+  }
 }
