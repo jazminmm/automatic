@@ -331,3 +331,9 @@ int getHash(char *key, int len) {
   for (hash=0, i=0; i < strlen(key); i++) hash=hash^(int)key[i];
   return ((hash)%len);
 }
+
+void tablePrint(Table *t, const char *format) {
+
+
+
+}

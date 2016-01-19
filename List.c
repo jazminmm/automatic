@@ -240,17 +240,22 @@ void listItemConcat(List *l, const char *format) {
   int repinst = -1;
   for (int i = 0; i < strlen(format); i++)
     if(format[i] == '%' && format[i+1] == 's') {
+      if (repinst != -1)
+        autoError("String contains more than one instance of \"\%s\" in listItemConcat()");
       repinst = i;
       break;
     }
   if(repinst == -1) autoError("String doesn't contain \"\%s\" in listItemConcat()");
   if(!listMoveFront(l)) return;
   while(1) {
+    sprintf(temp, format, listGetCur(l));
+    /*
     if(repinst) strncpy(temp, format, repinst);
     temp[repinst] = '\0';
     strcat(temp, listGetCur(l));
     strcat(temp, format + repinst + 2); // nothing like a little pointer arithmatic to help
                                        // you sleep at night
+    */
     listSetCur(l, temp);
 
     if(!listMoveNext(l)) return;
