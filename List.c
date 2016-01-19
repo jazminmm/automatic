@@ -83,8 +83,14 @@ int listGetPos(List *l) {
 
 void listDestroy(List *l) {
   if(!l) return;
+  if (!l->first) {
+    free(l->id);
+    free(l);
+    return;
+  }
   if(l->first == l->last) {
     deleteNode(l->first);
+    free(l->id);
     free(l);
     return;
   }
@@ -344,6 +350,7 @@ bool listMoveFront(List *l) {
   if(!l) autoError("NULL List passed to listMoveFront()");
   if(listGetSize(l) == 0) {
     //printf("Can't set current in an empty list\n");
+    l->cur = NULL;
     return false;
   }
   l->cur = l->first;
@@ -354,6 +361,7 @@ bool listMoveBack(List *l) {
   if(!l) autoError("NULL List passed to listMoveBack()");
   if(listGetSize(l) == 0) {
     //printf("Can't set current in an empty list\n");
+    l->cur = NULL;
     return false;
   }
   l->cur = l->last;
@@ -391,6 +399,7 @@ bool listMovePrev(List *l) {
 char *listGetCur(List *l) {
   if(!l) autoError("NULL List passed to listGetCur()");
   if(!l->cur) return NULL;
+  debugPrint("SWAG %s", l->cur->sdir);
   return l->cur->sdir;
 }
 
@@ -404,8 +413,15 @@ void listSetCur(List *l, char *ns) {
 void listConcat(List *first, List *second) {
   if(!first) autoError("first List in listConcat() is NULL");
   if(!second) autoError("second List in listConcat() is NULL");
-  for (listMoveFront(second); listGetCur(second); listMoveNext(second)) {
+  //char temp1[501], temp2[501];
+  //listString(first, temp1);
+  //listString(second, temp2);
+  //debugPrint("List1 is size %d and list2 is size %d", listGetSize(first), listGetSize(second));
+  //debugPrint("The two lists are\nlist1:\n%slist2:\n%s", temp1, temp2);
+  listMoveFront(second);
+  while (listGetCur(second)) {
     listAppend(first, listGetCur(second));
+    listMoveNext(second);
   }
   listDestroy(second);
 }
