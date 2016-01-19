@@ -61,6 +61,7 @@ bool tableGetBool(Table *t, char *key);
 
 // Returns a list of Strings which are basically thr value tokenized by the white space character or NULL if value is NULL
 List *tableGetList(Table *t, char *key);
+
 /*
 // Returns an array of character pointers or NULL if nothing exists with key. Becarefule to free the resulting char **. You can use the following function have this done for you
 char **tableGetStringArray(Table *t, char *key);
@@ -69,8 +70,9 @@ char **tableGetStringArray(Table *t, char *key);
 void freeStringArray(char **sa);
 */
 
-//Puts (key, value) into table, overwriting existing, copies strings (don't just save pointers), deletes entry if value is null
-// Note this function first makes a call to remove to force the overwrite condition
+//Puts (key, value) into table, overwriting existing, copies strings (don't just save pointers),
+// deletes entry if value is null. Note this function first makes a call
+// to tableRemove to force the overwrite condition
 void tablePut(Table *t, char *key, char *value);
 
 //Removes a key value pair from the table. This doesn't require that the key already exist, it simply enforces it being removed
@@ -102,5 +104,17 @@ Table *rehash(Table *t);
 
 // Hash Function... Found online
 int getHash(char *key, int len);
+
+// Prints all keys in the HashList in format that don't have key[0] == '.'
+int hashListPrint(HashList *l, const char *format);
+
+// Prints all keys in the HashList in format
+int hashListPrintAll(HashList *l, const char *format);
+
+// calls HashListPrint on all existing HashLists in the table
+void tablePrint(Table *t, const char *format);
+
+// calls HashListPrintAll on all existing HashLists in the table
+void tablePrintAll(Table *t, const char *format);
 
 #endif //_TABLE_H_

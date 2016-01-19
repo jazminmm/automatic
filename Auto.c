@@ -304,7 +304,7 @@ void autoPrompt() {
       autoPrompt();
     }
   }
-  printf("The command is:\n");
+  printf("The command is: ");
   listPrint(cmdList);
 }
 
