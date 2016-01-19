@@ -284,11 +284,13 @@ char* currentDir() {
 
 void autoPrompt() {
   if(cmdList) listDestroy(cmdList);
+  cmdList = NULL; // If you do not do this, the list will not be NULL -> dangling pointer != NULL pointer
   while(! cmdList) {
     autoInput(cmd, "$");
     cmdList = listCreateFromToken(cmd, " ");
   }
   listMoveFront(cmdList);
+  //debugPrint("First item is %s", listGetCur(cmdList));
   if(listGetCur(cmdList)[0] == '-') {
     List *expandList = tableGetList(macroTable, listGetCur(cmdList)[1]);
     if(expandList) {
@@ -300,6 +302,7 @@ void autoPrompt() {
       autoPrompt();
     }
   }
+  printf("The command is:\n");
   listPrint(cmdList);
 }
 

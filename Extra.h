@@ -26,7 +26,7 @@
 
 #define min(x, y) (x < y ? x : y)
 
-#define strcmp(x, y) strncmp(x, y, min(strlen(x), strlen(y)))
+#define strcmp(x, y) strncmp(x, y, min(strlen(x), strlen(y)) + 1)
 
 #define streq(str1, str2) \
   ((strlen(str1) == strlen(str2)) && (strcmp(str1, str2) == 0))

@@ -29,24 +29,34 @@ List *listCreateFromDirent(struct dirent **d, int ndir) {
 
 List *listCreateFromToken(char *str, const char *delimiters) {
   if(!str || !delimiters || !strcmp(str, "") || !strcmp(delimiters, "")) {
+    //debugPrint("str is size %d and delimiters is size %d", strlen(str), strlen(delimiters));
     debugPrint("One of the arguments to listCreateFromToken() is NULL or an empty String");
     return NULL;
   }
+  //int dcount = 0; // for debugging
   char temps[501] = "";
   int tpos = 0;
   List *l = listCreate();
   for (int i = 0; i < strlen(str); i++) {
     for (int j = 0; j < strlen(delimiters); j++) {
+      //debugPrint("Count is %d and comparing %d with %d", dcount++, str[i], delimiters[j]);
       if(str[i] == delimiters[j]) {
+        //debugPrint("str[i] and delimiters[j] are equal");
         temps[tpos] = '\0';
         tpos = 0;
+        //debugPrint("temps is size %d", strlen(temps));       
         listAppend(l, temps);
         i++;
         j = 0;
       }
     }
+    if (i >= strlen(str)) break;
     temps[tpos++] = str[i];
+    //debugPrint("added to temps");
   }
+  temps[tpos] = '\0';
+  //debugPrint("temps is size %d", strlen(temps));
+  if (tpos) listAppend(l, temps);
   return l;
 }
 
