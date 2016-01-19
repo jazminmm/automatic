@@ -293,14 +293,20 @@ void autoPrompt() {
   listMoveFront(cmdList);
   if(listGetCur(cmdList)[0] == '-') {
     tablePut(macroTable, "uw", "user write");
-    debugPrint("Literal lookup %s", tableGet(macroTable, "uw"));
-    debugPrint("Lookup macro %s", &listGetCur(cmdList)[1]);
+    debugPrint("Literal lookup of \"uw\" = \"%s\"", tableGet(macroTable, "uw"));
+    debugPrint("Lookup macro \"%s\"", &listGetCur(cmdList)[1]);
     debugPrint("Result %s", tableGet(macroTable, &listGetCur(cmdList)[1]));
     List *expandList = tableGetList(macroTable, &listGetCur(cmdList)[1], " ");
     if(expandList) {
+      debugPrint("1");
       listRemove(cmdList, listGetCur(cmdList));
+      debugPrint("2");
+      listPrint(expandList);
+      listPrint(cmdList);
       listConcat(expandList, cmdList);
+      debugPrint("3");
       cmdList = expandList;
+      debugPrint("4");
     } else {
       autoWarn("INFO could not expand macro <%s>", listGetCur(cmdList));
       autoPrompt();
