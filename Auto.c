@@ -296,7 +296,7 @@ void autoPrompt() {
     debugPrint("Literal lookup %s", tableGet(macroTable, "uw"));
     debugPrint("Lookup macro %s", &listGetCur(cmdList)[1]);
     debugPrint("Result %s", tableGet(macroTable, &listGetCur(cmdList)[1]));
-    List *expandList = tableGetList(macroTable, &listGetCur(cmdList)[1]);
+    List *expandList = tableGetList(macroTable, &listGetCur(cmdList)[1], " ");
     if(expandList) {
       listRemove(cmdList, listGetCur(cmdList));
       listConcat(expandList, cmdList);

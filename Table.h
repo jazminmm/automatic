@@ -59,8 +59,8 @@ float tableGetFloat(Table *t, char *key);
 // Returns false unless string is literally "true"
 bool tableGetBool(Table *t, char *key);
 
-// Returns a list of Strings which are basically thr value tokenized by the white space character or NULL if value is NULL
-List *tableGetList(Table *t, char *key);
+// Returns a list of Strings which are basically the value tokenized by any character in delimiters or NULL if value is NULL
+List *tableGetList(Table *t, char *key, const char *delimiters);
 
 /*
 // Returns an array of character pointers or NULL if nothing exists with key. Becarefule to free the resulting char **. You can use the following function have this done for you

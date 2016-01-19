@@ -125,24 +125,40 @@ bool tableGetBool(Table *t, char *key) {
   return !strcmp(value, "true");
 }
 
-List *tableGetList(Table *t, char *key) {
-  char *value = tableGet(t, key);
-  if(!value) return NULL;
-  List *l = listCreate();
-  int count = 0;
-  int i = 0;
-  char tok[strlen(value)];
-  while(value[count] != '\0') {
-    for (i = 0; value[count] != ' ' && value[count] != '\0'; i++) {
-      tok[i] = value[count++];
-    }
-    count++;
-    tok[++i] = '\0';
-    listAppend(l, tok);
-    if(value[count - 1] == '\0') break; // account for the possibility of a string of size n + 2 followed by size n: '....\0' -> '...\0.\0'
+List *tableGetList(Table *t, char *key, const char *delimiters) {
+  if(!t, !key || !delimiters || !strcmp(key, "") || !strcmp(delimiters, "")) {
+    //debugPrint("str is size %d and delimiters is size %d", strlen(str), strlen(delimiters));
+    debugPrint("One of the arguments to tableGetList() is NULL or an empty String");
+    return NULL;
   }
+  //int dcount = 0; // for debugging
+  char temps[501] = "";
+  int tpos = 0;
+  List *l = listCreate();
+  char *str = tableGet(t, key);
+  for (int i = 0; i < strlen(str); i++) {
+    for (int j = 0; j < strlen(delimiters); j++) {
+      //debugPrint("Count is %d and comparing %d with %d", dcount++, str[i], delimiters[j]);
+      if(str[i] == delimiters[j]) {
+        //debugPrint("str[i] and delimiters[j] are equal");
+        temps[tpos] = '\0';
+        tpos = 0;
+        //debugPrint("temps is size %d", strlen(temps));       
+        listAppend(l, temps);
+        i++;
+        j = 0;
+      }
+    }
+    if (i >= strlen(str)) break;
+    temps[tpos++] = str[i];
+    //debugPrint("added to temps");
+  }
+  temps[tpos] = '\0';
+  //debugPrint("temps is size %d", strlen(temps));
+  if (tpos) listAppend(l, temps);
   return l;
 }
+
 /*
 char **tableGetStringArray(Table *t, char *key) {
   char *value = tableGet(t, key);
