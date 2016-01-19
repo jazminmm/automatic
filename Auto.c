@@ -137,20 +137,20 @@ int main(int argc, char **argv) {
   // Get asglist
   changeDir(asgDir);
   /* Decided to just request a List function, see #14 
-  if(! tableContains(asgTable, ".directories")) 
-    tablePut(asgTable, ".directories", asgId);
-  asgList = tableGetList(asgTable, ".directories");
-  for(listMoveFront(asgList); 
-      listGetPos(asgList) < listGetSize(asgList); 
-      listMoveNext(asgList)) {
-    changeDir(classDir);
-    changeDir(listGetCur(asgList));
-    tempList = dirList();
-    if(streq(listGetCur(asgList), asgId)) {
-      
-    }
-  }
-  */
+     if(! tableContains(asgTable, ".directories")) 
+     tablePut(asgTable, ".directories", asgId);
+     asgList = tableGetList(asgTable, ".directories");
+     for(listMoveFront(asgList); 
+     listGetPos(asgList) < listGetSize(asgList); 
+     listMoveNext(asgList)) {
+     changeDir(classDir);
+     changeDir(listGetCur(asgList));
+     tempList = dirList();
+     if(streq(listGetCur(asgList), asgId)) {
+
+     }
+     }
+     */
   asgList = dirList(asgId);
   if(listGetSize(asgList) <= 0) 
     autoError("ASG <%s> has no submissions", asgId);
@@ -185,14 +185,16 @@ void autoShell() {
       studentWrite();
       if(! listMoveNext(asgList)) {
         listMoveFront(asgList);
-        autoWarn("INFO end of list, moving to first student <%s>", currentDir());
+        autoWarn("INFO end of list, moving to first student <%s>", 
+            currentDir());
       }
       studentRead();
     } else if(streq(cmd, "p")) {
       studentWrite();
       if(! listMovePrev(asgList)) {
         listMoveBack(asgList);
-        autoWarn("INFO beginning of list, moving to last student <%s>", currentDir());
+        autoWarn("INFO beginning of list, moving to last student <%s>", 
+            currentDir());
       }
       studentRead();
     } else if(streq(cmd, "l")) {
@@ -216,7 +218,8 @@ void studentRead() {
   tablePut(studentTable, ".name", tempString);
   changeDir(asgDir);
   requireChangeDir(listGetCur(asgList));
-  autoPrint("STUDENT <%s> (%s) loaded", studentId, tableGet(studentTable, ".name"));
+  autoPrint("STUDENT <%s> (%s) loaded", studentId, 
+      tableGet(studentTable, ".name"));
 }
 
 void studentWrite() {
@@ -280,10 +283,11 @@ char* currentDir() {
 }
 
 void autoPrompt() {
-  autoInput(cmd, "$");
   if(cmdList) listDestroy(cmdList);
-  debugPrint("cmd = %s", cmd);
-  cmdList = listCreateFromToken(cmd, " ");
+  while(! cmdList) {
+    autoInput(cmd, "$");
+    cmdList = listCreateFromToken(cmd, " ");
+  }
   listMoveFront(cmdList);
   if(listGetCur(cmdList)[0] == '-') {
     List *expandList = tableGetList(macroTable, listGetCur(cmdList)[1]);
@@ -303,10 +307,13 @@ void autoPrompt() {
 // Get input from user
 void autoInput(char* result, char* prompt) {
   printf("[%s@%s %s]%s ", graderId, exeId, currentDir(), prompt);
-  result[0] = '\0'; // fgets of an input stream does nothing if the first character is EOF so you have to write it manually
-  fgets(result, 1023, stdin); //gets() is bad for your health
-  if (strlen(result) < 2) return; //basically they typed an empty string and hit carriage return
-  result[strlen(result) - 1] = '\0'; // Always overwrite the newline at the end of the string
+  result[0] = '\0';
+  fgets(result, 1023, stdin);
+  if (strlen(result) < 2) {
+    debugPrint("autoInput() detected newline");
+    return;
+  }
+  result[strlen(result) - 1] = '\0';
 }
 
 // @return result
