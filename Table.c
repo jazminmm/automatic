@@ -59,17 +59,17 @@ void tableWrite(Table *t) {
     fclose(fp);
     unlink(temp); // file delete function
   }
-  if(tableSize(t) == 0) return; // We force delete the filewhen the table is empty
+  if(tableSize(t) == 0) return; // We force delete the file when the table is empty
   debugPrint("TABLE writing to <%s>", temp);
   fp = fopen(temp, "w");
-  for (int i = 0; i < t->size; i++) {
+  for (int i = 0; i < tableMaxSize(t); i++) {
     if(!t->table[i]) continue;
     for (HashListNode *tempn = t->table[i]->first; tempn; tempn = tempn->next) {
       debugPrint("  %s: %s", tempn->key, tempn->value);
       fprintf(fp, "%s: %s\n", tempn->key, tempn->value);
       count++;
     }
-    if(count == t->size) break;
+    if(count == tableSize(t)) break;
   }
   fclose(fp);
   tableDestroy(t);
@@ -177,6 +177,7 @@ void freeStringArray(char **sa) {
 
 void tablePut(Table *t, char *key, char *value) {
   if(!t) autoError("NULL HashTable passed to tablePut()");
+  //debugPrint("Called tablePut(t, %s, %s)", key, value);
   int hash = getHash(key, t->maxSize);
   if(!t->table[hash]) {
     t->table[hash] = hashListCreate();
@@ -185,6 +186,7 @@ void tablePut(Table *t, char *key, char *value) {
   //debugPrint("About to add %s with %s", key, value);
   if(hashListAdd(t->table[hash], key, value)) t->size++;
   //debugPrint("Added %s with %s", key, value);
+  //if (tableSize(t) >= tableMaxSize(t)) t = rehash(t);
 }
 
 void tableRemove(Table *t, char *key) {
@@ -320,9 +322,22 @@ Table *tableCreate(int size) {
 
 Table *rehash(Table *t) {
   if(!t) autoError("NULL Table passed to rehash()");
-  
- // Table n = tableCreate();
-  return NULL;
+  Table *n = tableCreate(2*tableMaxSize(t));
+  tableSetID(n, tableGetID(t));
+
+  int count = 0;
+  for (int i = 0; i < tableMaxSize(t); i++) {
+    if (!t->table[i]) continue;
+    for (HashListNode *temp = t->table[i]->first; temp; temp = temp->next) {
+      tablePut(n, temp->key, temp->value);
+      count++;
+      //debugPrint("Placing key: %s, value: %s in rehashed Table of size %d and maxSize %d", temp->key, temp->value, tableSize(n), tableMaxSize(n));
+    }
+    if (count == tableSize(t)) break;
+  }
+  tableDestroy(t);
+  //tablePrintAll(n, "New table: key: %s, value: %s\n");
+  return n;
 }
 
 int getHash(char *key, int len) {

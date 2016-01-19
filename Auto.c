@@ -177,6 +177,7 @@ void autoShell() {
   studentRead();
   while(true) {
     autoPrompt();
+    optimizeTables();
     if(streq(cmd, "e") || streq(cmd, "exit") || cmd[0] == '\0') {
       autoPrint("INFO would you like to save your changes to <%s>", studentId);
       if(autoAsk()) studentWrite();
@@ -203,6 +204,11 @@ void autoShell() {
       system(cmd);
     }
   }
+}
+void optimizeTables() { // follow the format of the first one. We have to call rehash from here otherwise
+                        // you won't be able to recieve the pointer to the rehashed table
+  if (tableSize(studentTable) >= tableMaxSize(studentTable)) studentTable = rehash(studentTable);
+
 }
 
 void studentRead() {
