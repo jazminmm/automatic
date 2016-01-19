@@ -21,6 +21,7 @@
   autoWrite();\
   exit(1);\
 }
+#define commanded(arg) streq(listGetCur(cmdList), arg)
 
 // Global vars
 char cwd[STRLEN]; // Current working directory
@@ -55,8 +56,8 @@ Table* asgTable; // Assignment config
 List* asgList; // List of all students
 List* asgDupList;
 
-char* keyName = ".name";
-char* keyId = ".id";
+char* keyName = "user.name";
+char* keyId = "user.id";
 
 // Temp vars
 int tempInt = 0;
@@ -175,11 +176,11 @@ void autoShell() {
   studentRead();
   while(true) {
     autoPrompt();
-    if(streq(cmd, "exit") || cmd[0] == '\0') {
+    if(commanded("exit") || cmd[0] == '\0') {
       autoPrint("INFO would you like to save your changes to <%s>", studentId);
       if(autoAsk()) studentWrite();
       break;
-    } else if(streq(cmd, "next")) {
+    } else if(commanded("next")) {
       studentWrite();
       if(! listMoveNext(asgList)) {
         listMoveFront(asgList);
@@ -187,7 +188,7 @@ void autoShell() {
             currentDir());
       }
       studentRead();
-    } else if(streq(cmd, "p")) {
+    } else if(commanded("prev")) {
       studentWrite();
       if(! listMovePrev(asgList)) {
         listMoveBack(asgList);
@@ -195,7 +196,7 @@ void autoShell() {
             currentDir());
       }
       studentRead();
-    } else if(streq(cmd, "l")) {
+    } else if(commanded("list")) {
       listPrint(asgList);
     } else {
       system(cmd);
@@ -217,7 +218,7 @@ void studentRead() {
   changeDir(asgDir);
   requireChangeDir(listGetCur(asgList));
   autoPrint("STUDENT <%s> (%s) loaded", studentId, 
-      tableGet(studentTable, ".name"));
+      tableGet(studentTable, keyName));
 }
 
 void studentWrite() {
@@ -285,16 +286,17 @@ void autoPrompt() {
   cmdList = NULL;
   while(! cmdList) {
     autoInput(cmd, "$");
+    debugPrint("Running listCreateFromToken(\"%s\")", cmd);
     cmdList = listCreateFromToken(cmd, " ");
   }
   listPrint(cmdList);
   listMoveFront(cmdList);
   if(listGetCur(cmdList)[0] == '-') {
     tablePut(macroTable, "uw", "user write");
+    debugPrint("Literal lookup %s", tableGet(macroTable, "uw"));
     debugPrint("Lookup macro %s", &listGetCur(cmdList)[1]);
     debugPrint("Result %s", tableGet(macroTable, &listGetCur(cmdList)[1]));
     List *expandList = tableGetList(macroTable, &listGetCur(cmdList)[1]);
-    listPrint(expandList);
     if(expandList) {
       listRemove(cmdList, listGetCur(cmdList));
       listConcat(expandList, cmdList);
@@ -314,7 +316,7 @@ void autoInput(char* result, char* prompt) {
   printf("[%s@%s %s]%s ", graderId, exeId, currentDir(), prompt);
   result[0] = '\0';
   fgets(result, 1023, stdin);
-  if (strlen(result) < 2) {
+  if (strlen(result) < 1) {
     debugPrint("autoInput() detected newline");
     return;
   }
