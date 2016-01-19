@@ -376,6 +376,7 @@ bool listMoveNext(List *l) {
   }
   if(listGetPos(l) == listGetSize(l)) {
     //printf("Already at back of list\n");
+    l->cur = NULL;
     return false;
   }
   l->cur = l->cur->next;
@@ -390,6 +391,7 @@ bool listMovePrev(List *l) {
   }
   if(listGetPos(l) == 1) {
     //printf("Already at front of list\n");
+    l->cur = NULL;
     return false;
   }
   l->cur = l->cur->prev;
@@ -399,7 +401,7 @@ bool listMovePrev(List *l) {
 char *listGetCur(List *l) {
   if(!l) autoError("NULL List passed to listGetCur()");
   if(!l->cur) return NULL;
-  debugPrint("SWAG %s", l->cur->sdir);
+  //debugPrint("SWAG %s", l->cur->sdir);
   return l->cur->sdir;
 }
 
