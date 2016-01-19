@@ -136,6 +136,7 @@ List *tableGetList(Table *t, char *key, const char *delimiters) {
   int tpos = 0;
   List *l = listCreate();
   char *str = tableGet(t, key);
+  if (!str) return NULL;
   for (int i = 0; i < strlen(str); i++) {
     for (int j = 0; j < strlen(delimiters); j++) {
       //debugPrint("Count is %d and comparing %d with %d", dcount++, str[i], delimiters[j]);
