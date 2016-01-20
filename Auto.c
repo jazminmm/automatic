@@ -176,9 +176,10 @@ void autoShell() {
   studentRead();
   while(true) {
     autoPrompt();
+		debugPrint("Current command: %s", listGetCur(cmdList));
     if(commanded("exit") || cmd[0] == '\0') {
       autoPrint("INFO would you like to save your changes to <%s>", studentId);
-      if(autoAsk()) studentWrite();
+      if(autoAsk("y")) studentWrite();
       break;
     } else if(commanded("next")) {
       studentWrite();
@@ -199,7 +200,8 @@ void autoShell() {
     } else if(commanded("list")) {
       listPrint(asgList);
     } else {
-      system(cmd);
+			listString(tempString, cmdList);
+      system(tempString);
     }
   }
 }
@@ -223,7 +225,7 @@ void studentRead() {
 
 void studentWrite() {
   changeDir(asgBinDir);
-  if(!studentTable) debugPrint("STUDENT <%s> did not have a table.", studentId);
+  //if(!studentTable) debugPrint("STUDENT <%s> did not have a table.", studentId);
   if(studentTable) tableWrite(studentTable);
   changeDir(asgDir);
   debugPrint("STUDENT <%s> closed", studentId);
@@ -244,9 +246,9 @@ bool changeDir(char* dir) {
 // Version of changeDir() that creates dir if nonexistent
 void assertChangeDir(char* dir) {
   if(! changeDir(dir)) {
-    char cmd[1024];
-    sprintf(cmd, "mkdir %s", dir);
-    system(cmd);
+    char temp[1024];
+    sprintf(temp, "mkdir %s", dir);
+    system(temp);
     changeDir(dir);
     autoWarn("DIR <%s> created", dir);
   }
@@ -282,13 +284,15 @@ char* currentDir() {
 }
 
 void autoPrompt() {
+	char temp[STRLEN * 2];
   if(cmdList) listDestroy(cmdList);
   cmdList = NULL;
   while(! cmdList) {
-    autoInput(cmd, "$");
-    debugPrint("Running listCreateFromToken(\"%s\")", cmd);
-    cmdList = listCreateFromToken(cmd, " ");
+    autoInput(temp, "$");
+    debugPrint("Running listCreateFromToken(\"%s\")", temp);
+    cmdList = listCreateFromToken(temp, " ");
   }
+	strcpy(cmd, temp);
   listPrint(cmdList);
   listMoveFront(cmdList);
   if(listGetCur(cmdList)[0] == '-') {
@@ -298,15 +302,11 @@ void autoPrompt() {
     debugPrint("Result %s", tableGet(macroTable, &listGetCur(cmdList)[1]));
     List *expandList = tableGetList(macroTable, &listGetCur(cmdList)[1], " ");
     if(expandList) {
-      debugPrint("1");
       listRemove(cmdList, listGetCur(cmdList));
-      debugPrint("2");
       listPrint(expandList);
       listPrint(cmdList);
       listConcat(expandList, cmdList);
-      debugPrint("3");
       cmdList = expandList;
-      debugPrint("4");
     } else {
       autoWarn("INFO could not expand macro <%s>", listGetCur(cmdList));
       autoPrompt();
@@ -314,6 +314,7 @@ void autoPrompt() {
   }
   printf("The command is: ");
   listPrint(cmdList);
+	listMoveFront(cmdList);
 }
 
 // @param result: string to hold result of prompt
@@ -331,9 +332,12 @@ void autoInput(char* result, char* prompt) {
 
 // @return result
 // Get boolean input from user
-bool autoAsk() {
+bool autoAsk(char *std) {
   char result[STRLEN * 2];
-  autoInput(result, "(y/n)");
+	sprintf(result, "(y/n)[%s]", std);
+  autoInput(result, result);
+	if(streq(result, "")) strcpy(result, std);
+
   return streq(result, "y")
     || streq(result, "Y")
     || streq(result, "yes")
