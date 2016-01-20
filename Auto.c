@@ -13,7 +13,6 @@
   autoPrint(args);\
   printf("\x1b[0m");\
   debugPrint("INFO stack trace");\
-  debugPrint("GRADER <%s>", graderId);\
   debugPrint("CLASS <%s>", classId);\
   debugPrint("ASG <%s>", asgId);\
   debugPrint("PATH <%s>", currentPath());\
@@ -21,7 +20,7 @@
   autoWrite();\
   exit(1);\
 }
-#define commanded(arg) streq(listGetCur(cmdList), arg) 
+#define commanded(arg) streq(listGetCur(cmdList), arg)
 
 // Global vars
 char cwd[STRLEN]; // Current working directory
@@ -30,16 +29,13 @@ List* cmdList; // Last read command stack
 
 char studentId[STRLEN]; // Current student Id
 Table* studentTable; // Current student config
-char* studentPrefix = "student_";
 
 // Memory storage
-char graderId[STRLEN]; // icherdak
-char graderName[STRLEN]; // Isaak Joseph Cherdak
 Table* graderTable; // User config
-char* graderPrefix = "grader_";
 
 char* exeId = "auto";
 char* exeName = "automatic";
+Table* exeTable;
 char exeDir[STRLEN]; // Executable directory, called automatic
 Table* helpTable; // Executable help strings
 Table* macroTable; // Expandable command macros -xxx
@@ -64,12 +60,12 @@ int tempInt = 0;
 char tempString[STRLEN];
 List* tempList;
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv) { 
 
-  // Get grader info
-  myId(graderId);
-  realName(graderName, graderId);
-  autoPrint("GRADER <%s> (%s) loaded", graderId, graderName);
+	// Initialize program
+	exeTable = tableRead("auto_exe");
+	tablePut(exeTable, "exe.name", "automatic");
+	tablePut(exeTable, "exe.id", "auto");
 
   // Get arguments
   // TODO: Actually support arguments
@@ -82,13 +78,15 @@ int main(int argc, char **argv) {
   // Get executable info
   helpTable = tableRead("help");
   macroTable = tableRead("macro");
-  strcpy(exeDir, currentPath());
-  if(! streq(currentDir(), exeName)) {
-    requireChangeDir(exeName);
-    strcpy(exeDir, currentPath());
+	tablePut(exeTable, "exe.dir", currentPath());
+	tablePrint(exeTable, "%s: %s\n");
+	debugPrint("tableGet(exe.name) = %s", tableGet(exeTable, "exe.name"));
+  if(! streq(currentDir(), tableGet(exeTable, "exe.name"))) {
+    requireChangeDir(tableGet(exeTable, "exe.name"));
+    tablePut(exeTable, "exe.dir", currentPath());
     changeDir("..");
   }
-  debugPrint("EXE <%s> loaded", exeDir);
+  debugPrint("EXE <%s> loaded", tableGet(exeTable, "exe.dir"));
 
   // Get class info
   if(streq(classId, "")) {
@@ -135,21 +133,6 @@ int main(int argc, char **argv) {
 
   // Get asglist
   changeDir(asgDir);
-  /* Decided to just request a List function, see #14 
-     if(! tableContains(asgTable, ".directories")) 
-     tablePut(asgTable, ".directories", asgId);
-     asgList = tableGetList(asgTable, ".directories");
-     for(listMoveFront(asgList); 
-     listGetPos(asgList) < listGetSize(asgList); 
-     listMoveNext(asgList)) {
-     changeDir(classDir);
-     changeDir(listGetCur(asgList));
-     tempList = dirList();
-     if(streq(listGetCur(asgList), asgId)) {
-
-     }
-     }
-     */
   asgList = dirList(asgId);
   if(listGetSize(asgList) <= 0) 
     autoError("ASG <%s> has no submissions", asgId);
@@ -157,9 +140,14 @@ int main(int argc, char **argv) {
   // Get grader config
   changeDir(binDir);
   assertChangeDir("config");
-  strcpy(tempString, graderPrefix);
-  strcat(tempString, graderId);
+	sprintf(tempString, "grader_%s", getlogin());
   graderTable = tableRead(tempString);
+	tablePut(graderTable, "user.id", getlogin());
+	realName(tempString, getlogin());
+	tablePut(graderTable, "user.name", tempString);
+	autoPrint("GRADER <%s> (%s) loaded", tableGet(graderTable, "user.id"), 
+			tableGet(graderTable, "user.name"));
+	tablePrint(graderTable, "%s: %s\n");
 
   // Run shell
   autoShell();
@@ -257,7 +245,6 @@ void studentWrite() {
 bool changeDir(char* dir) {
   int ret = chdir(dir);
   getcwd(cwd, sizeof(cwd));
-  debugPrint(ret == 0 ? "DIR <%s> loaded" : "DIR <%s> failed to load", dir);
   return ret == 0;
 }
 
@@ -309,16 +296,11 @@ void autoPrompt() {
   while(! cmdList) {
     autoInput(temp, "$");
 		strcpy(cmd, temp);
-    debugPrint("Running listCreateFromToken(\"%s\")", temp);
     cmdList = listCreateFromToken(temp, " ");
   }	
   listPrint(cmdList);
   listMoveFront(cmdList);
   if(listGetCur(cmdList)[0] == '-') {
-    tablePut(macroTable, "uw", "user write");
-    debugPrint("Literal lookup of \"uw\" = \"%s\"", tableGet(macroTable, "uw"));
-    debugPrint("Lookup macro \"%s\"", &listGetCur(cmdList)[1]);
-    debugPrint("Result %s", tableGet(macroTable, &listGetCur(cmdList)[1]));
     List *expandList = tableGetList(macroTable, &listGetCur(cmdList)[1], " ");
     if(expandList) {
       listRemove(cmdList, listGetCur(cmdList));
@@ -331,15 +313,14 @@ void autoPrompt() {
       autoPrompt();
     }
   }
-  printf("The command is: ");
-  listPrint(cmdList);
 	listMoveFront(cmdList);
 }
 
 // @param result: string to hold result of prompt
 // Get input from user
 void autoInput(char* result, char* prompt) {
-  printf("[%s@%s %s]%s ", graderId, exeId, currentDir(), prompt);
+  printf("[%s@%s %s]%s ", tableGet(graderTable, "user.id"), exeId, currentDir(),
+			prompt);
   result[0] = '\0';
   fgets(result, 1023, stdin);
   if (strlen(result) < 1) {
@@ -375,7 +356,8 @@ void autoWrite() {
   if(asgList) listDestroy(asgList);
   if(cmdList) listDestroy(cmdList);
   if(tempList) listDestroy(tempList);
-  if(helpTable) tableDestroy(helpTable);
+  if(exeTable) tableDestroy(exeTable);
+	if(helpTable) tableDestroy(helpTable);
   if(macroTable) tableDestroy(macroTable);
   debugPrint("EXE safely exited", exeId);
 }
