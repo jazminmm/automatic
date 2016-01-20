@@ -21,7 +21,7 @@
   autoWrite();\
   exit(1);\
 }
-#define commanded(arg) streq(listGetCur(cmdList), arg)
+#define commanded(arg) streq(listGetCur(cmdList), arg) 
 
 // Global vars
 char cwd[STRLEN]; // Current working directory
@@ -176,7 +176,6 @@ void autoShell() {
   studentRead();
   while(true) {
     autoPrompt();
-		debugPrint("Current command: %s", listGetCur(cmdList));
     if(commanded("exit") || cmd[0] == '\0') {
       autoPrint("INFO would you like to save your changes to <%s>", studentId);
       if(autoAsk("y")) studentWrite();
@@ -197,11 +196,32 @@ void autoShell() {
             currentDir());
       }
       studentRead();
-    } else if(commanded("list")) {
-      listPrint(asgList);
-    } else {
+    } else if(commanded("skip")) {
+			if(! listMovePrev(asgList)) {
+        listMoveBack(asgList);
+        autoWarn("INFO beginning of list, moving to last student <%s>", 
+            currentDir());
+      }
+      studentRead();	
+    } else if(commanded("user")) {
+			if(listMoveNext(cmdList)) {
+				if(commanded("print")) {
+					tablePrint(studentTable, "%s: %s\n");
+				} else if(commanded("reset")) {
+					studentRead();
+				} else if(commanded("write")) {
+					studentWrite();
+					studentRead();
+				}
+			} else {
+				debugPrint("help user");
+			}
+		} else {
+			/* listString doesn't work yet TODO
 			listString(tempString, cmdList);
       system(tempString);
+			*/
+			system(cmd);
     }
   }
 }
@@ -211,8 +231,7 @@ void studentRead() {
   requireChangeDir(listGetCur(asgList));
   strcpy(studentId, currentDir());
   changeDir(asgBinDir);
-  strcpy(tempString, studentPrefix);
-  strcat(tempString, studentId);
+  sprintf(tempString, "student_%s", studentId);
   studentTable = tableRead(tempString);
   tablePut(studentTable, keyId, studentId);
   realName(tempString, studentId);
@@ -289,10 +308,10 @@ void autoPrompt() {
   cmdList = NULL;
   while(! cmdList) {
     autoInput(temp, "$");
+		strcpy(cmd, temp);
     debugPrint("Running listCreateFromToken(\"%s\")", temp);
     cmdList = listCreateFromToken(temp, " ");
-  }
-	strcpy(cmd, temp);
+  }	
   listPrint(cmdList);
   listMoveFront(cmdList);
   if(listGetCur(cmdList)[0] == '-') {
