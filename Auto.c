@@ -79,8 +79,8 @@ int main(int argc, char **argv) {
   helpTable = tableRead("help");
   macroTable = tableRead("macro");
 	tablePut(exeTable, "exe.dir", currentPath());
-	tablePrint(exeTable, "%s: %s\n");
-	debugPrint("tableGet(exe.name) = %s", tableGet(exeTable, "exe.name"));
+	//tablePrint(exeTable, "%s: %s\n");
+	//debugPrint("tableGet(exe.name) = %s", tableGet(exeTable, "exe.name"));
   if(! streq(currentDir(), tableGet(exeTable, "exe.name"))) {
     requireChangeDir(tableGet(exeTable, "exe.name"));
     tablePut(exeTable, "exe.dir", currentPath());
