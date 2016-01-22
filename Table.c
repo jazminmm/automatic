@@ -95,7 +95,8 @@ bool tableContains(Table *t, char *key) {
 
 char *tableGet(Table *t, char *key) {
   if(!t) autoError("NULL HashTable pased to tableGet()");
-  int hash = getHash(key, t->size);
+  int hash = getHash(key, t->maxSize);
+  //debugPrint("Calling tableGet(t, %s) on table of size %d with hash %d", key, tableSize(t), hash);
   if(!t->table[hash]) return NULL;
   return hashListFind(t->table[hash], key);
   /*for (HashListNode temp = t->table[hash]->first; temp; temp = temp->next) {
@@ -194,8 +195,8 @@ void freeStringArray(char **sa) {
 
 void tablePut(Table *t, char *key, char *value) {
   if(!t) autoError("NULL HashTable passed to tablePut()");
-  //debugPrint("Called tablePut(t, %s, %s)", key, value);
   int hash = getHash(key, t->maxSize);
+  //debugPrint("Called tablePut(t, %s, %s)", key, value);
   if(!t->table[hash]) {
     t->table[hash] = hashListCreate();
   }
