@@ -3,6 +3,11 @@
 test : default
 	$(INST) lab1
 
+listtest : List.o ListTest.o
+	$(LINK) $(LFLAGS) ListTest $^
+	./ListTest
+	make spotless
+
 error : default
 	$(INST) swagger
 
