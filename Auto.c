@@ -204,7 +204,10 @@ void autoShell() {
 			} else {
 				debugPrint("help user");
 			}
-		} else {
+		} else if (commanded("mail")) {
+      sendMail();
+      break;
+    } else {
 			/* listString doesn't work yet TODO
 			listString(tempString, cmdList);
       system(tempString);
@@ -678,7 +681,59 @@ void autoGrade(char *dir) {
   printf("Grading routine finished\n");
 }
 
-void sendMail(char *dir) {
+void sendMail() {
+
+  changeDir(asgBinDir);
+  FILE *mscript = fopen("mailscript", "w");
+  fprintf(mscript, "#!/bin/bash\ncd %s\n", asgDir);
+  int count = 0; // how many students will be emailed
+  listMoveFront(asgList);
+  while(1) {
+    changeDir(asgDir);
+    requireChangeDir(listGetCur(asgList));
+    FILE *fp = fopen("grade.txt", "r");
+    if (fp) {
+      fclose(fp);
+      fprintf(mscript, "cd %s\necho \"Mailing %s@ucsc.edu\"\nmailx -s \"grade for %s\" %s@ucsc.edu < grade.txt\ncd ..\nsleep 2\n",
+        listGetCur(asgList), listGetCur(asgList), asgId, listGetCur(asgList));
+      count++;
+    }
+    if (!listMoveNext(asgList)) break;
+  }
+  fprintf(mscript, "echo \"Finished mailing all students\"");
+  fclose(mscript);
+  changeDir(asgBinDir);
+  while(1) {
+    debugPrint("Approximate runtime: %d minute%s %d second%s, Would you like to email all students that have been graded? <y/n> [y]",
+      (count * 2) / 60, ((count * 2) / 60) == 1 ? "" : "s", (count * 2) % 60, ((count * 2) % 60) == 1 ? "" : "s");
+    char ask = getchar();
+    //debugPrint("ask is %c with %d", ask, ask);
+    if (ask == 'y') {
+      system("chmod 700 mailscript");
+      system("./mailscript");
+      system("rm mailscript");
+      debugPrint("Mail Routine Complete");
+      break;
+    } else if (ask =='n') {
+      system("rm mailscript");
+      debugPrint("Exiting Program");
+      break;
+    } else if (ask == '\n') {
+      system("chmod 700 mailscript");
+      system("./mailscript");
+      system("rm mailscript");
+      debugPrint("Mail Routine Complete");
+      break; 
+    } else {
+      printf("Invalid Command!\nPlease Enter An Appropriate Character <y/n> [y]\n");
+    }
+  }
+
+
+  return; // the rest is old stuff
+
+/*
+
   //	printf("Mail method not yet available\n");
   //	return;
   char path[500];
@@ -735,6 +790,8 @@ void sendMail(char *dir) {
       printf("Invalid Command!\nPlease Enter An Appropriate Character [y/n]\n");
     }
   }
+
+*/
 }
 
 void getGrades(char *dir) {

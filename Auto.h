@@ -11,7 +11,7 @@
 
 void autoGrade(char *dir);
 
-void sendMail(char *dir);
+void sendMail();
 
 void getGrades(char *dir);
 

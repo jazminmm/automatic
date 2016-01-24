@@ -193,6 +193,76 @@ void deleteNode(Node *n) {
 }
 
 void listFilter(List *l, char *dir,  char *filter) {
+  if (!l) autoError("Null List passed to listFilter");
+  if (!dir) autoError("Null, directory passed to listFilter");
+  if (!filter) autoError("Null filter passed to listFilter");
+
+  if (!chdir(dir)) {
+    debugPrint("Directory %s doesn't exist", dir);
+    return;
+  }
+  int mode = filter[0] = '!' ? 0 : 1; // if mode is 1 then we want a list with the file, else we want a list without it
+  filter += filter[0] = '!' ? 1 : 0; // pointer moves over the '!' if it exists
+  int count = 0;
+  listMoveFront(l);
+  while(1) {
+    if (!chdir(listGetCur(l))) {
+      FILE *fp = fopen(filter, "r");
+      if (mode) {
+        if(fp) fclose(fp);
+        else count++;
+      } else {
+        if (fp) {
+          fclose(fp);
+          count++;
+        }
+      }
+    }
+    chdir("..");
+    if(!listMoveNext(l)) break;
+  }
+  if (count == listGetSize(l)) {
+    debugPrint("listFilter aborted because it would've resulted in an empty list");
+    return;
+  }
+  while(1) {
+    if (!chdir(listGetCur(l))) {
+      FILE *fp = fopen(filter, "r");
+      if (mode) {
+        if(fp) fclose(fp);
+        else listRemove(l, listGetCur(l));
+      } else {
+        if (fp) {
+          fclose(fp);
+          listRemove(l, listGetCur(l));
+        }
+      }
+    }
+    chdir("..");
+    if(!listMoveNext(l)) break;
+  }
+
+  debugPrint("listFilter filtered %d directories", count);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  return; // ignore the rest
+/*
+
   if(strlen(filter) < 2) return;
   int fcount = 0;
   int mode = (filter[0] == '!' ? 1 : 0);
@@ -237,6 +307,7 @@ void listFilter(List *l, char *dir,  char *filter) {
     if(fp) fclose(fp);
   }
   autoPrint("Successfully filtered out %d directories", fcount);
+*/
 }
 
 void listItemConcat(List *l, const char *format) {
@@ -256,12 +327,12 @@ void listItemConcat(List *l, const char *format) {
   while(1) {
     sprintf(temp, format, listGetCur(l));
     /*
-    if(repinst) strncpy(temp, format, repinst);
-    temp[repinst] = '\0';
-    strcat(temp, listGetCur(l));
-    strcat(temp, format + repinst + 2); // nothing like a little pointer arithmatic to help
-                                       // you sleep at night
-    */
+       if(repinst) strncpy(temp, format, repinst);
+       temp[repinst] = '\0';
+       strcat(temp, listGetCur(l));
+       strcat(temp, format + repinst + 2); // nothing like a little pointer arithmatic to help
+    // you sleep at night
+     */
     listSetCur(l, temp);
 
     if(!listMoveNext(l)) return;
