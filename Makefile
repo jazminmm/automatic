@@ -49,7 +49,7 @@ clean :
 	rm -f $(OBJ)
 
 spotless : clean
-	rm -f $(EXE) ListTest
+	rm -f $(EXE)
 
 .PHONY: default install clean spotless -m -g -t -r
 

@@ -7,6 +7,7 @@ listtest : List.o ListTest.o
 	$(LINK) $(LFLAGS) ListTest $^
 	./ListTest
 	make spotless
+	rm -f ListTest ListTest.o
 
 error : default
 	$(INST) swagger
