@@ -697,6 +697,8 @@ void sendMail() {
       fprintf(mscript, "cd %s\necho \"Mailing %s@ucsc.edu\"\nmailx -s \"grade for %s\" %s@ucsc.edu < grade.txt\ncd ..\nsleep 2\n",
         listGetCur(asgList), listGetCur(asgList), asgId, listGetCur(asgList));
       count++;
+    } else {
+      autoWarn("%s: No grade.txt", listGetCur(asgList));
     }
     if (!listMoveNext(asgList)) break;
   }
@@ -704,7 +706,7 @@ void sendMail() {
   fclose(mscript);
   changeDir(asgBinDir);
   while(1) {
-    debugPrint("Approximate runtime: %d minute%s %d second%s, Would you like to email all students that have been graded? <y/n> [y]",
+    autoPrint("Approximate runtime: %d minute%s %d second%s, Would you like to email all students that have been graded? <y/n> [y]",
       (count * 2) / 60, ((count * 2) / 60) == 1 ? "" : "s", (count * 2) % 60, ((count * 2) % 60) == 1 ? "" : "s");
     char ask = getchar();
     //debugPrint("ask is %c with %d", ask, ask);
