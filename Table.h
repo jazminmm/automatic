@@ -75,6 +75,10 @@ void freeStringArray(char **sa);
 // to tableRemove to force the overwrite condition
 void tablePut(Table *t, char *key, char *value);
 
+// adds an entry to t with key key that is a string of all items in the list
+// concatenated to each other separated by delimiter
+// This kills l!!!
+void tablePutList(Table *t, char *key, List *l, char *delimiter);
 //Removes a key value pair from the table. This doesn't require that the key already exist, it simply enforces it being removed
 void tableRemove(Table *t, char *key);
 

@@ -127,7 +127,7 @@ bool tableGetBool(Table *t, char *key) {
 }
 
 List *tableGetList(Table *t, char *key, const char *delimiters) {
-  if(!t, !key || !delimiters || !strcmp(key, "") || !strcmp(delimiters, "")) {
+  if(!t || !key || !delimiters || !strcmp(key, "") || !strcmp(delimiters, "")) {
     //debugPrint("str is size %d and delimiters is size %d", strlen(str), strlen(delimiters));
     debugPrint("One of the arguments to tableGetList() is NULL or an empty String");
     return NULL;
@@ -207,6 +207,27 @@ void tablePut(Table *t, char *key, char *value) {
   //debugPrint("key is %s : value is %s", key, value);
   if (tableSize(t) == tableMaxSize(t)) rehash(t);
   //debugPrint("YOLOSWAG");
+}
+
+void tablePutList(Table *t, char *key, List *l, char *delimiter) {
+
+  if (!t) autoError("NULL HashTable passed to tablePutList()");
+  if (!l) autoError("NULL List passed to tablePutList()");
+  if (!key || !delimiter) autoError("NULL String passed to tablePutList()");
+  int hash = getHash(key, t->maxSize);
+  if (!t->table[hash]) {
+    t->table[hash] = hashListCreate();
+  }
+  char value[listGetSize(l) * (500 + strlen(delimiter) - 1) + 1];
+  strncpy(value, "", listGetSize(l) * (500 + strlen(delimiter) - 1) + 1);
+  listMoveFront(l);
+  while (listMoveNext(l)) {
+    strcat(value, listGetCur(l));
+    strcat(value, delimiter);
+  }
+  listDestroy(l);
+  if (hashListAdd(t->table[hash], key, value)) t->size++;
+  if (tableSize(t) == tableMaxSize(t)) rehash(t);
 }
 
 void tableRemove(Table *t, char *key) {
