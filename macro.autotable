@@ -2,6 +2,7 @@ d: deduct
 da: deduct add
 dp: deduct print
 dr: deduct rm
+g: grade
 n: next
 p: prev
 s: skip

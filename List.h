@@ -59,6 +59,7 @@ void listFilter(List *l, char *dir, char *filter);
 void listItemConcat(List *l, const char *format);
 
 // returns a list of directories based off listCreateFromDirent and the current directory
+// and also set id of list to id
 List *dirList(char *id);
 
 // sets the id of l to be id

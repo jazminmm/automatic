@@ -207,6 +207,28 @@ void autoShell() {
 		} else if (commanded("mail")) {
       sendMail();
       break;
+    } else if (commanded("grade")) { // currently set up for lab6
+      if (strcmp(asgId, "lab6")) {
+        printf("Grade automation only ready for lab6\n");
+        continue;
+      }
+      system("cp /afs/cats.ucsc.edu/users/f/ptantalo/public/LetterHome.class Temp.class");
+      List *tempList = dirList("");
+      listMoveFront(tempList);
+      do {
+        if (strstr(".dat", listGetCur(tempList))) {
+          printf("Test for LetterHome with %s\n================\n", listGetCur(tempList));
+          char lfilen [strlen(listGetCur(tempList)) + 1 + strlen("java Temp ")];
+          sprintf(lfilen, "java Temp %s", listGetCur(tempList));
+          system(lfilen);
+        }
+      } while(listMoveNext(tempList));
+      listDestroy(tempList);
+      system("rm Temp.class");
+      printf("\n================\n\nHere are the errors\n================\n");
+      system("cat errors");
+      printf("\n");
+      //insert grade report automation here
     } else {
 			/* listString doesn't work yet TODO
 			listString(tempString, cmdList);
