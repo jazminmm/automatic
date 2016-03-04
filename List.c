@@ -18,7 +18,7 @@ List *listCreate() {
 //d is the struct dirent and ndir is the number of items in the struct
 List *listCreateFromDirent(struct dirent **d, int ndir) {
   List *l = listCreate();
-  for (int i = 0; i < ndir; i++) if(strncmp(".", d[i]->d_name, 2) && strncmp("..", d[i]->d_name, 3)) {
+  for (int i = 0; i < ndir; i++) if(strncmp(".", d[i]->d_name, 2) && strncmp("..", d[i]->d_name, 3)) { // don't include ".", and ".." directories
     if(chdir(d[i]->d_name) == 0) {
       chdir("..");
       listAppend(l, d[i]->d_name);
@@ -28,51 +28,49 @@ List *listCreateFromDirent(struct dirent **d, int ndir) {
 }
 
 List *listCreateFromToken(char *str, const char *delimiters) {
-  if(!str || !delimiters || !strcmp(str, "") || !strcmp(delimiters, "")) {
+  if(!str || !delimiters || !strcmp(delimiters, "")) {
     //debugPrint("str is size %d and delimiters is size %d", strlen(str), strlen(delimiters));
     debugPrint("One of the arguments to listCreateFromToken() is NULL or an empty String");
     return NULL;
   }
-  //int dcount = 0; // for debugging
-  char temps[501] = "";
-  int tpos = 0;
+  char temps[501] = ""; // holds the current token
+  int tpos = 0; // current position in token buffer
   List *l = listCreate();
-  for (int i = 0; i < strlen(str); i++) {
-    for (int j = 0; j < strlen(delimiters); j++) {
-      //debugPrint("Count is %d and comparing %d with %d", dcount++, str[i], delimiters[j]);
+  for (int i = 0; 1; i++) { // go to next character of string to parse
+    for (int j = 0; j < strlen(delimiters); j++) { // check if character is one of the delimiters
+      if (tpos > 500) autoError("Token has surpassed capacity in listCreateFromToken()");
+      if (i >= strlen(str)) break; // this is a valid exit condition of the loop
       if(str[i] == delimiters[j]) {
-        //debugPrint("str[i] and delimiters[j] are equal");
-        temps[tpos] = '\0';
+        temps[tpos] = '\0'; // string ends at a null character
         tpos = 0;
-        //debugPrint("temps is size %d", strlen(temps));       
         listAppend(l, temps);
-        i++;
-        j = 0;
+        i++; // this line and the next work together to emulate starting checks on the next character
+        j = 0; // this must be done here to work with the logic of this algorithm
       }
     }
-    if (i >= strlen(str)) break;
+    if (i >= strlen(str)) break; // this is the real exit condition of this loop
     temps[tpos++] = str[i];
-    //debugPrint("added to temps");
   }
-  temps[tpos] = '\0';
-  //debugPrint("temps is size %d", strlen(temps));
-  if (tpos) listAppend(l, temps);
+  temps[tpos] = '\0'; // ends string at null
+  if (tpos) listAppend(l, temps); // without this, the remaining piece of the string, if any, would be forgotten
   return l;
 }
 
 void listPrint(List *l) {
+  if (!l) autoError("NULL List passed to listPrint()");
   for (Node *temp = l->first; temp; temp = temp->next) printf("%s ", temp->sdir);
   printf("\n");
 }
 
 int listGetSize(List *l) {
+  if (!l) autoError("NULL List passed to listGetSize()");
   int total = 0;
   for (Node *temp = l->first; temp; temp = temp->next) total++;
   return total;
 }
 
 int listGetPos(List *l) {
-  if(!l) autoError("NULL list passed to listGetPos()");
+  if(!l) autoError("NULL List passed to listGetPos()");
   if(!l->cur) {
     return -1;
   }
@@ -82,7 +80,7 @@ int listGetPos(List *l) {
 }
 
 void listDestroy(List *l) {
-  if(!l) return;
+  if (!l) autoError("NULL List passed to listDestroy()");
   if (!l->first) {
     free(l->id);
     free(l);
@@ -111,6 +109,7 @@ void listDestroy(List *l) {
 }
 
 void listPrepend(List *l, char *sdir) {
+  if (!l) autoError("NULL List passed to listPrepend()");
   Node *temp = l->first;
   if(!temp) {
     l->first = malloc(sizeof(Node));
@@ -130,6 +129,7 @@ void listPrepend(List *l, char *sdir) {
 }
 
 void listAppend(List *l, char *sdir) {
+  if (!l) autoError("NULL List passed to listPrepend()");
   Node *temp = l->last;
   if(!temp) {
     l->first = malloc(sizeof(Node));
@@ -149,6 +149,7 @@ void listAppend(List *l, char *sdir) {
 }
 
 void listInsert(List *l, char *sdir) {
+  if (!l) autoError("NULL List passed to listInsert()");
   Node *temp = l->first;
   if(!temp) {
     listAppend(l, sdir);
@@ -204,7 +205,7 @@ void listFilter(List *l, char *dir,  char *filter) {
   int mode = filter[0] = '!' ? 0 : 1; // if mode is 1 then we want a list with the file, else we want a list without it
   filter += filter[0] = '!' ? 1 : 0; // pointer moves over the '!' if it exists
   int count = 0;
-  listMoveFront(l);
+  if listMoveFront(l) autoError("List was empty in listFilter()");
   while(1) {
     if (!chdir(listGetCur(l))) {
       FILE *fp = fopen(filter, "r");
@@ -225,6 +226,7 @@ void listFilter(List *l, char *dir,  char *filter) {
     debugPrint("listFilter aborted because it would've resulted in an empty list");
     return;
   }
+  listMoveFront(l);
   while(1) {
     if (!chdir(listGetCur(l))) {
       FILE *fp = fopen(filter, "r");
