@@ -205,7 +205,7 @@ void listFilter(List *l, char *dir,  char *filter) {
   int mode = filter[0] = '!' ? 0 : 1; // if mode is 1 then we want a list with the file, else we want a list without it
   filter += filter[0] = '!' ? 1 : 0; // pointer moves over the '!' if it exists
   int count = 0;
-  if listMoveFront(l) autoError("List was empty in listFilter()");
+  if (listMoveFront(l)) autoError("List was empty in listFilter()");
   while(1) {
     if (!chdir(listGetCur(l))) {
       FILE *fp = fopen(filter, "r");
