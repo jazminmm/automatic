@@ -62,10 +62,10 @@ List* tempList;
 
 int main(int argc, char **argv) { 
 
-	// Initialize program
-	exeTable = tableRead("auto_exe");
-	tablePut(exeTable, "exe.name", "automatic");
-	tablePut(exeTable, "exe.id", "auto");
+  // Initialize program
+  exeTable = tableRead("auto_exe");
+  tablePut(exeTable, "exe.name", "automatic");
+  tablePut(exeTable, "exe.id", "auto");
 
   // Get arguments
   // TODO: Actually support arguments
@@ -78,9 +78,9 @@ int main(int argc, char **argv) {
   // Get executable info
   helpTable = tableRead("help");
   macroTable = tableRead("macro");
-	tablePut(exeTable, "exe.dir", currentPath());
-	//tablePrint(exeTable, "%s: %s\n");
-	//debugPrint("tableGet(exe.name) = %s", tableGet(exeTable, "exe.name"));
+  tablePut(exeTable, "exe.dir", currentPath());
+  //tablePrint(exeTable, "%s: %s\n");
+  //debugPrint("tableGet(exe.name) = %s", tableGet(exeTable, "exe.name"));
   if(! streq(currentDir(), tableGet(exeTable, "exe.name"))) {
     requireChangeDir(tableGet(exeTable, "exe.name"));
     tablePut(exeTable, "exe.dir", currentPath());
@@ -140,14 +140,14 @@ int main(int argc, char **argv) {
   // Get grader config
   changeDir(binDir);
   assertChangeDir("config");
-	sprintf(tempString, "grader_%s", getlogin());
+  sprintf(tempString, "grader_%s", getlogin());
   graderTable = tableRead(tempString);
-	tablePut(graderTable, "user.id", getlogin());
-	realName(tempString, getlogin());
-	tablePut(graderTable, "user.name", tempString);
-	autoPrint("GRADER <%s> (%s) loaded", tableGet(graderTable, "user.id"), 
-			tableGet(graderTable, "user.name"));
-	tablePrint(graderTable, "%s: %s\n");
+  tablePut(graderTable, "user.id", getlogin());
+  realName(tempString, getlogin());
+  tablePut(graderTable, "user.name", tempString);
+  autoPrint("GRADER <%s> (%s) loaded", tableGet(graderTable, "user.id"), 
+      tableGet(graderTable, "user.name"));
+  tablePrint(graderTable, "%s: %s\n");
 
   // Run shell
   autoShell();
@@ -185,26 +185,26 @@ void autoShell() {
       }
       studentRead();
     } else if(commanded("skip")) {
-			if(! listMovePrev(asgList)) {
+      if(! listMovePrev(asgList)) {
         listMoveBack(asgList);
         autoWarn("INFO beginning of list, moving to last student <%s>", 
             currentDir());
       }
       studentRead();	
     } else if(commanded("user")) {
-			if(listMoveNext(cmdList)) {
-				if(commanded("print")) {
-					tablePrint(studentTable, "%s: %s\n");
-				} else if(commanded("reset")) {
-					studentRead();
-				} else if(commanded("write")) {
-					studentWrite();
-					studentRead();
-				}
-			} else {
-				debugPrint("help user");
-			}
-		} else if (commanded("mail")) {
+      if(listMoveNext(cmdList)) {
+        if(commanded("print")) {
+          tablePrint(studentTable, "%s: %s\n");
+        } else if(commanded("reset")) {
+          studentRead();
+        } else if(commanded("write")) {
+          studentWrite();
+          studentRead();
+        }
+      } else {
+        debugPrint("help user");
+      }
+    } else if (commanded("mail")) {
       sendMail();
       break;
     } else if (commanded("grade")) { // currently set up for lab6
@@ -212,35 +212,49 @@ void autoShell() {
         printf("Grade automation only ready for lab6\n");
         continue;
       }
-      system("cp /afs/cats.ucsc.edu/class/cmps012a-pt.w16/bin/lab6/ErrorDeduct .");
-      system("./ErrorDeduct");
-      system("rm ErrorDeduct");
+      int count = 0;
+      do {
+        system("cp /afs/cats.ucsc.edu/class/cmps012a-pt.w16/bin/lab6/ErrorDeduct .");
+        system("./ErrorDeduct");
+        system("rm ErrorDeduct");
+        studentWrite();
+        if(! listMoveNext(asgList)) {
+          listMoveFront(asgList);
+          autoWarn("INFO end of list, moving to first student <%s>", 
+              currentDir());
+        }
+        studentRead();
+        if (++count >= 10) {
+          printf("Take a break or stop by cutting the program\n");
+          getchar();
+        }
+      } while(listGetPos(asgList) > 1);
       //continue;
       /*
-      system("cp /afs/cats.ucsc.edu/users/f/ptantalo/public/LetterHome.class Temp.class");
-      List *tempList = dirList("");
-      listMoveFront(tempList);
-      do {
-        if (strstr(".dat", listGetCur(tempList))) {
-          printf("Test for LetterHome with %s\n================\n", listGetCur(tempList));
-          char lfilen [strlen(listGetCur(tempList)) + 1 + strlen("java Temp ")];
-          sprintf(lfilen, "java Temp %s", listGetCur(tempList));
-          system(lfilen);
-        }
-      } while(listMoveNext(tempList));
-      listDestroy(tempList);
-      system("rm Temp.class");
-      printf("\n================\n\nHere are the errors\n================\n");
-      system("cat errors");
-      printf("\n");
-      */
+         system("cp /afs/cats.ucsc.edu/users/f/ptantalo/public/LetterHome.class Temp.class");
+         List *tempList = dirList("");
+         listMoveFront(tempList);
+         do {
+         if (strstr(".dat", listGetCur(tempList))) {
+         printf("Test for LetterHome with %s\n================\n", listGetCur(tempList));
+         char lfilen [strlen(listGetCur(tempList)) + 1 + strlen("java Temp ")];
+         sprintf(lfilen, "java Temp %s", listGetCur(tempList));
+         system(lfilen);
+         }
+         } while(listMoveNext(tempList));
+         listDestroy(tempList);
+         system("rm Temp.class");
+         printf("\n================\n\nHere are the errors\n================\n");
+         system("cat errors");
+         printf("\n");
+         */
       //insert grade report automation here
     } else {
-			/* listString doesn't work yet TODO
-			listString(tempString, cmdList);
-      system(tempString);
-			*/
-			system(cmd);
+      /* listString doesn't work yet TODO
+         listString(tempString, cmdList);
+         system(tempString);
+         */
+      system(cmd);
     }
   }
 }
@@ -323,12 +337,12 @@ char* currentDir() {
 }
 
 void autoPrompt() {
-	char temp[STRLEN * 2];
+  char temp[STRLEN * 2];
   if(cmdList) listDestroy(cmdList);
   cmdList = NULL;
   while(! cmdList) {
     autoInput(temp, "$");
-		strcpy(cmd, temp);
+    strcpy(cmd, temp);
     cmdList = listCreateFromToken(temp, " ");
   }	
   listPrint(cmdList);
@@ -346,14 +360,14 @@ void autoPrompt() {
       autoPrompt();
     }
   }
-	listMoveFront(cmdList);
+  listMoveFront(cmdList);
 }
 
 // @param result: string to hold result of prompt
 // Get input from user
 void autoInput(char* result, char* prompt) {
   printf("[%s@%s %s]%s ", tableGet(graderTable, "user.id"), exeId, currentDir(),
-			prompt);
+      prompt);
   result[0] = '\0';
   fgets(result, 1023, stdin);
   if (strlen(result) < 1) {
@@ -367,9 +381,9 @@ void autoInput(char* result, char* prompt) {
 // Get boolean input from user
 bool autoAsk(char *std) {
   char result[STRLEN * 2];
-	sprintf(result, "(y/n)[%s]", std);
+  sprintf(result, "(y/n)[%s]", std);
   autoInput(result, result);
-	if(streq(result, "")) strcpy(result, std);
+  if(streq(result, "")) strcpy(result, std);
 
   return streq(result, "y")
     || streq(result, "Y")
@@ -390,7 +404,7 @@ void autoWrite() {
   if(cmdList) listDestroy(cmdList);
   if(tempList) listDestroy(tempList);
   if(exeTable) tableDestroy(exeTable);
-	if(helpTable) tableDestroy(helpTable);
+  if(helpTable) tableDestroy(helpTable);
   if(macroTable) tableDestroy(macroTable);
   debugPrint("EXE safely exited", exeId);
 }
@@ -725,7 +739,7 @@ void sendMail() {
     if (fp) {
       fclose(fp);
       fprintf(mscript, "cd %s\necho \"Mailing %s@ucsc.edu\"\nmailx -s \"grade for %s\" %s@ucsc.edu < grade.txt\ncd ..\nsleep 2\n",
-        listGetCur(asgList), listGetCur(asgList), asgId, listGetCur(asgList));
+          listGetCur(asgList), listGetCur(asgList), asgId, listGetCur(asgList));
       count++;
     } else {
       autoWarn("%s: No grade.txt", listGetCur(asgList));
@@ -737,7 +751,7 @@ void sendMail() {
   changeDir(asgBinDir);
   while(1) {
     autoPrint("Approximate runtime: %d minute%s %d second%s, Would you like to email all students that have been graded? <y/n> [y]",
-      (count * 2) / 60, ((count * 2) / 60) == 1 ? "" : "s", (count * 2) % 60, ((count * 2) % 60) == 1 ? "" : "s");
+        (count * 2) / 60, ((count * 2) / 60) == 1 ? "" : "s", (count * 2) % 60, ((count * 2) % 60) == 1 ? "" : "s");
     char ask = getchar();
     //debugPrint("ask is %c with %d", ask, ask);
     if (ask == 'y') {
@@ -764,7 +778,7 @@ void sendMail() {
 
   return; // the rest is old stuff
 
-/*
+  /*
 
   //	printf("Mail method not yet available\n");
   //	return;
@@ -777,8 +791,8 @@ void sendMail() {
   int filecount;
   chdir("..");
   if (chdir(dir) != 0) {
-    printf("Trouble switching to the specified directory\n");
-    return;
+  printf("Trouble switching to the specified directory\n");
+  return;
   }
   filecount = scandir(".", &fileList, NULL, alphasort);
   FILE *fp2 = fopen("/afs/cats.ucsc.edu/class/cmps012b-pt.s15/bin/mailscript", "w");
@@ -787,40 +801,40 @@ void sendMail() {
   //	char temp[501];
   //	char commands[filecount - 2][501];
   for (int i = 2; i < filecount; i++) { //start at i = 2 because we are ignoring the "." and ".." directories
-    chdir(fileList[i]->d_name);
-    fp = fopen("grade.txt", "r");
-    if (!fp) printf("grade.txt does not exist for %s\n", fileList[i]->d_name);
-    else {
-      fprintf (fp2, "cd %s\necho \"Mailing %s@ucsc.edu\"\nmailx -s \"grade for %s\" %s@ucsc.edu < grade.txt\ncd ..\nsleep 3\n", fileList[i]->d_name, fileList[i]->d_name, dir, fileList[i]->d_name);
-      //			strncpy(commands[i - 2], temp, 500);
-      //			printf("%s\n", commands[i - 2]);
-      fclose(fp);
-      mailcount++;
-    }
-    chdir("..");
+  chdir(fileList[i]->d_name);
+  fp = fopen("grade.txt", "r");
+  if (!fp) printf("grade.txt does not exist for %s\n", fileList[i]->d_name);
+  else {
+  fprintf (fp2, "cd %s\necho \"Mailing %s@ucsc.edu\"\nmailx -s \"grade for %s\" %s@ucsc.edu < grade.txt\ncd ..\nsleep 3\n", fileList[i]->d_name, fileList[i]->d_name, dir, fileList[i]->d_name);
+  //			strncpy(commands[i - 2], temp, 500);
+  //			printf("%s\n", commands[i - 2]);
+  fclose(fp);
+  mailcount++;
+  }
+  chdir("..");
   }
   //	fclose(fp);
   for (int i = 0; i < filecount; i++)
-    free(fileList[i]);
+  free(fileList[i]);
   free(fileList);
   fclose(fp2);
   chdir("/afs/cats.ucsc.edu/class/cmps012b-pt.s15/bin");
   while(1) {
-    printf("Approximate runtime: %d minute%s %d second%s, Would you like to email all students that have been graded? [y/n]\n", (mailcount * 3) / 60, ((mailcount * 3) / 60) == 1 ? "" : "s", (mailcount * 3) % 60, ((mailcount * 3) % 60) == 1 ? "" : "s");
-    char ask = getchar();
-    if (ask == 'y') {
-      system("chmod 700 mailscript");
-      system("mailscript");
-      system("rm mailscript");
-      printf("Mail Routine Complete\n");
-      return;
-    } else if (ask =='n') {
-      system("rm mailscript");
-      printf("Exiting Program\n");
-      return;
-    } else {
-      printf("Invalid Command!\nPlease Enter An Appropriate Character [y/n]\n");
-    }
+  printf("Approximate runtime: %d minute%s %d second%s, Would you like to email all students that have been graded? [y/n]\n", (mailcount * 3) / 60, ((mailcount * 3) / 60) == 1 ? "" : "s", (mailcount * 3) % 60, ((mailcount * 3) % 60) == 1 ? "" : "s");
+  char ask = getchar();
+  if (ask == 'y') {
+  system("chmod 700 mailscript");
+  system("mailscript");
+  system("rm mailscript");
+  printf("Mail Routine Complete\n");
+  return;
+  } else if (ask =='n') {
+  system("rm mailscript");
+  printf("Exiting Program\n");
+  return;
+  } else {
+  printf("Invalid Command!\nPlease Enter An Appropriate Character [y/n]\n");
+  }
   }
 
 */
