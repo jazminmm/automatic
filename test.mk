@@ -1,7 +1,7 @@
 # Makefile for tests
 
 test : default
-	$(INST) lab1
+	$(INST) lab6
 
 listtest : List.o ListTest.o
 	$(LINK) $(LFLAGS) ListTest $^

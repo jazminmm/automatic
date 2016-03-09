@@ -212,6 +212,11 @@ void autoShell() {
         printf("Grade automation only ready for lab6\n");
         continue;
       }
+      system("cp /afs/cats.ucsc.edu/class/cmps012a-pt.w16/bin/lab6/ErrorDeduct .");
+      system("./ErrorDeduct");
+      system("rm ErrorDeduct");
+      //continue;
+      /*
       system("cp /afs/cats.ucsc.edu/users/f/ptantalo/public/LetterHome.class Temp.class");
       List *tempList = dirList("");
       listMoveFront(tempList);
@@ -228,6 +233,7 @@ void autoShell() {
       printf("\n================\n\nHere are the errors\n================\n");
       system("cat errors");
       printf("\n");
+      */
       //insert grade report automation here
     } else {
 			/* listString doesn't work yet TODO
