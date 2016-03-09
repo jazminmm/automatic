@@ -250,6 +250,7 @@ void studentRead() {
   requireChangeDir(listGetCur(asgList));
   strcpy(studentId, currentDir());
   changeDir(asgBinDir);
+  changeDir("student");
   sprintf(tempString, "student_%s", studentId);
   studentTable = tableRead(tempString);
   tablePut(studentTable, keyId, studentId);
@@ -263,6 +264,7 @@ void studentRead() {
 
 void studentWrite() {
   changeDir(asgBinDir);
+  changeDir("student");
   //if(!studentTable) debugPrint("STUDENT <%s> did not have a table.", studentId);
   if(studentTable) tableWrite(studentTable);
   changeDir(asgDir);
