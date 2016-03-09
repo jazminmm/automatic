@@ -246,28 +246,28 @@ void autoShell() {
 }
 
 void studentRead() {
-  changeDir(asgDir);
+  requireChangeDir(asgDir);
   requireChangeDir(listGetCur(asgList));
   strcpy(studentId, currentDir());
-  changeDir(asgBinDir);
-  changeDir("student");
+  requireChangeDir(asgBinDir);
+  assertChangeDir("student");
   sprintf(tempString, "student_%s", studentId);
   studentTable = tableRead(tempString);
   tablePut(studentTable, keyId, studentId);
   realName(tempString, studentId);
   tablePut(studentTable, keyName, tempString);
-  changeDir(asgDir);
+  requireChangeDir(asgDir);
   requireChangeDir(listGetCur(asgList));
   autoPrint("STUDENT <%s> (%s) loaded", studentId, 
       tableGet(studentTable, keyName));
 }
 
 void studentWrite() {
-  changeDir(asgBinDir);
-  changeDir("student");
+  requireChangeDir(asgBinDir);
+  assertChangeDir("student");
   //if(!studentTable) debugPrint("STUDENT <%s> did not have a table.", studentId);
   if(studentTable) tableWrite(studentTable);
-  changeDir(asgDir);
+  requireChangeDir(asgDir);
   debugPrint("STUDENT <%s> closed", studentId);
   strcpy(studentId, "null");
 }
