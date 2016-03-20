@@ -212,7 +212,7 @@ void autoShell() {
         printf("Grade automation only ready for lab6\n");
         continue;
       }
-      int count = 0;
+      int check = 0;
       do {
         system("cp /afs/cats.ucsc.edu/class/cmps012a-pt.w16/bin/lab6/ErrorDeduct .");
         system("./ErrorDeduct");
@@ -224,11 +224,12 @@ void autoShell() {
               currentDir());
         }
         studentRead();
-        if (++count >= 10) {
-          printf("Take a break or stop by cutting the program\n");
-          getchar();
-        }
-      } while(listGetPos(asgList) > 1);
+        printf("Take a break and hit enter to continue or type 'y' to stop\n");
+        char tempcheck[1024];
+        fgets(tempcheck, 1023, stdin);
+        if (tempcheck[0] == 'y' && tempcheck[1] == '\n') check = 1;
+        //printf("lol:%c", c);
+      } while(listGetPos(asgList) > 1 && !check);
       //continue;
       /*
          system("cp /afs/cats.ucsc.edu/users/f/ptantalo/public/LetterHome.class Temp.class");
