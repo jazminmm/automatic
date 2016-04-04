@@ -207,7 +207,10 @@ void autoShell() {
     } else if (commanded("mail")) {
       sendMail();
       break;
-    } else if (commanded("grade")) { // currently set up for lab6
+    } else if (commanded("grade")) {
+      printf("This function is not yet available\n");
+      continue;
+
       if (strcmp(asgId, "lab6")) {
         printf("Grade automation only ready for lab6\n");
         continue;
