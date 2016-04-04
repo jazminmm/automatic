@@ -18,7 +18,7 @@ LINK = gcc
 default : install spotless
 
 install : $(EXE)
-	cp $< $(INST)
+	#cp $< $(INST) #program doesn't work if executed from outside of this directory
 
 #compile the executable
 $(EXE) : $(OBJ)
