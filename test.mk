@@ -1,7 +1,8 @@
 # Makefile for tests
 
 test : default
-	$(INST) lab6
+	./$(INST) lab1
+	make spotless
 
 listtest : List.o ListTest.o
 	$(LINK) $(LFLAGS) ListTest $^

@@ -6,7 +6,9 @@ SRC = Auto.c Extra.c List.c Stack.c Table.c
 DEP = $(SRC:.c=.h)
 OBJ = $(SRC:.c=.o)
 EXE = Auto
-INST = ../$(EXE)
+INST = ../$(EXE) #the call of the program must be from within this directory
+									# or tables won't be read
+INST = $(EXE)
 EFLAGS = valgrind --leak-check=full --show-leak-kinds=all
 #DIR = pa1
 CFLAGS = -c -Wall -Wno-format-extra-args -std=c99 #-Werror #-Wextra 
@@ -15,7 +17,7 @@ LFLAGS = -o
 ELFLAGS = -lm
 LINK = gcc
 
-default : install spotless
+default : install
 
 install : $(EXE)
 	#cp $< $(INST) #program doesn't work if executed from outside of this directory

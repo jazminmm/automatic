@@ -194,6 +194,8 @@ void deleteNode(Node *n) {
 }
 
 void listFilter(List *l, char *dir,  char *filter) {
+  debugPrint("listFilter() is broken and currently unapplicable");
+  if (1) return;
   if (!l) autoError("Null List passed to listFilter");
   if (!dir) autoError("Null, directory passed to listFilter");
   if (!filter) autoError("Null filter passed to listFilter");
@@ -202,8 +204,8 @@ void listFilter(List *l, char *dir,  char *filter) {
     debugPrint("Directory %s doesn't exist", dir);
     return;
   }
-  int mode = filter[0] = '!' ? 0 : 1; // if mode is 1 then we want a list with the file, else we want a list without it
-  filter += filter[0] = '!' ? 1 : 0; // pointer moves over the '!' if it exists
+  int mode = filter[0] == '!' ? 0 : 1; // if mode is 1 then we want a list with the file, else we want a list without it
+  filter += filter[0] == '!' ? 1 : 0; // pointer moves over the '!' if it exists
   int count = 0;
   if (listMoveFront(l)) autoError("List was empty in listFilter()");
   while(1) {
@@ -245,22 +247,6 @@ void listFilter(List *l, char *dir,  char *filter) {
   }
 
   debugPrint("listFilter filtered %d directories", count);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   return; // ignore the rest
 /*
@@ -364,9 +350,12 @@ List *listRead(char *id) {
   listSetID(l, id);
   char temp[501];
   sprintf(temp, "%s.autolist", id);
-  FILE *fp = fopen(id, "r");
-  if(!fp) autoError("%s.autotable didn't exist when calling listRead()", id);
+  FILE *fp = fopen(temp, "r");
+  if(!fp) autoError("%s.autolist didn't exist when calling listRead()", id);
   while(fgets(temp, 500, fp)) {
+    if (temp[strlen(temp) - 1] == '\n') temp[strlen(temp) - 1] = '\0';
+    if (!strlen(temp)) continue; // get rid of newlines in strings, don't append
+                                 // empty strings to the list
     listAppend(l, temp);
   }
   fclose(fp);
@@ -409,8 +398,10 @@ bool listContains(List *l, char *sdir) {
 }
 
 void listString(List *l, char *buf) {
+  debugPrint("listString is deprecated and doesn't function");
+  if (1) return;
   if(!l) autoError("Passed NULL List to listString()");
-  strncpy(buf, "", strlen(buf));
+  buf[0] = '\0';
   if(!l->first) return;
   for (Node *n = l->first; n; n = n->next) {
     strcat(buf, n->sdir);
@@ -444,7 +435,7 @@ bool listMoveBack(List *l) {
 bool listMoveNext(List *l) {
   if(!l) autoError("NULL List passed to listMoveNext()");
   if(!l->cur) {
-    //printf("Can't move current relative to itself ifit is NULL\n");
+    autoError("Can't move current relative to itself if it is NULL\n");
     return false;
   }
   if(listGetPos(l) == listGetSize(l)) {
@@ -459,7 +450,7 @@ bool listMoveNext(List *l) {
 bool listMovePrev(List *l) {
   if(!l) autoError("NULL List passed to listMovePrev()");
   if(!l->cur) {
-    //printf("Can't move current relative to itself ifit is NULL\n");
+    autoError("Can't move current relative to itself if it is NULL\n");
     return false;
   }
   if(listGetPos(l) == 1) {
