@@ -21,6 +21,7 @@ default : install
 
 install : $(EXE)
 	#cp $< $(INST) #program doesn't work if executed from outside of this directory
+	make clean
 
 #compile the executable
 $(EXE) : $(OBJ)

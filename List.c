@@ -390,10 +390,21 @@ void listRemove(List *l, char *sdir) {
 }
 
 bool listContains(List *l, char *sdir) {
-  if(!l) autoError("Passed NULL List to listContains()");
+  if(!l || !sdir) autoError("Passed NULL List or NULL string to listContains()");
   for (Node *temp = l->first; temp; temp = temp->next) {
     if(!strcmp(temp->sdir, sdir)) return true;
   }
+  return false;
+}
+
+bool listSeek(List *l, char *sdir) {
+  if(!l || !sdir) autoError("Passed NULL List or NULL string to listSeek()");
+  Node *temp = l->cur;
+  if (!listMoveFront(l)) return false;
+  do {
+    if(!strcmp(listGetCur(l), sdir)) return true;
+  } while (listMoveNext(l));
+  l->cur = temp;
   return false;
 }
 

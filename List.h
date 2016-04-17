@@ -71,7 +71,7 @@ char *listGetID(List *l);
 // returns a List that contains all Strings in id.autolist. Also sets the list's id to id
 List *listRead(char *id);
 
-// writes a list to it's 
+// writes a list to a file where id is that which is stored in this list: id.autolist 
 void listWrite(List *l);
 
 // Removes sdir from L. WARNING: you are responsible for handling cursors that point to freed blocks!
@@ -80,10 +80,13 @@ void listRemove(List *l, char *sdir);
 // Returns whether L contains sdir
 bool listContains(List *l, char *sdir);
 
+// Returns whether L was able to be seeked to sdir. If false is returned, current position will be unchanged
+bool listSeek(List *l, char *sdir);
+
 // overwrites buf to be listPrint as a String
 void listString(List *l, char *buf);
 
-// For teh following four: Will attempt to move to location specified or print a note if not possible
+// For the following four: prints true if operation completed, if false, cur is probably NULL
 bool listMoveFront(List *l);
 
 bool listMoveBack(List *l);

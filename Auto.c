@@ -16,10 +16,15 @@
   debugPrint("CLASS <%s>", classId);\
   debugPrint("ASG <%s>", asgId);\
   debugPrint("PATH <%s>", currentPath());\
-  studentWrite();\
-  autoWrite();\
+  if (asgList) { \
+    studentWrite();\
+    autoWrite();\
+  } else {\
+    autoWarn("Stack trace didn't happen because list was not ready");\
+  }\
   exit(1);\
 }
+
 #define commanded(arg) streq(listGetCur(cmdList), arg)
 
 // Global vars
@@ -33,8 +38,8 @@ Table* studentTable; // Current student config
 // Memory storage
 Table* graderTable; // User config
 
-char* exeId = "auto";
-char* exeName = "automatic";
+char exeId[5] = "auto";
+char exeName[10] = "automatic";
 Table* exeTable;
 char exeDir[STRLEN]; // Executable directory, called automatic
 Table* helpTable; // Executable help strings
@@ -66,6 +71,7 @@ int main(int argc, char **argv) {
   exeTable = tableRead("auto_exe");
   tablePut(exeTable, "exe.name", "automatic");
   tablePut(exeTable, "exe.id", "auto");
+  asgList = NULL;
 
   // Get arguments
   // TODO: Actually support arguments
@@ -74,7 +80,6 @@ int main(int argc, char **argv) {
   strcpy(asgId, argv[argc - 1]);
   if(streq(asgId, "bin")) 
     autoError("ASG <%s> invalid", asgId);
-
   // Get executable info
   helpTable = tableRead("help");
   macroTable = tableRead("macro");
@@ -160,7 +165,14 @@ int main(int argc, char **argv) {
 // Auto shell loop
 // Assume start at root directory
 void autoShell() {
+  char *startDir = NULL; // will tell which directory we started on in this run of Auto
   listMoveFront(asgList);
+  startDir = listGetCur(asgList);
+  if (graderTable) { // attempt to seek to the last place the grader was at before they exited
+    char temps[51];
+    sprintf(temps, "LastDir_%s_%s", classId, asgId);
+    if (startDir = tableGet(graderTable, temps)) if (!listSeek(asgList, startDir)) autoWarn("The directory you were last at no longer exists");
+  }
   studentRead();
   while(true) {
     autoPrompt();
@@ -208,7 +220,22 @@ void autoShell() {
       sendMail();
       break;
     } else if (commanded("grade")) {
-      printf("This function is not yet available\n");
+      //printf("This function is not yet available\n");
+      requireChangeDir(asgBinDir);
+      //requireChangeDir(asgId);
+      FILE *exe_test = fopen(asgId, "r");
+      if (exe_test) {
+        fclose(exe_test);
+      } else {
+        autoWarn("The assignment grading script, %s, doesn't yet exist in %s/\n",
+        asgId, asgBinDir);
+        studentRead();
+        continue;
+      }
+      char stemp[21];
+      sprintf(stemp, "./%s", asgId);
+      system(stemp);
+      studentRead();
       continue;
 
       if (strcmp(asgId, "lab6")) {
@@ -398,8 +425,13 @@ bool autoAsk(char *std) {
 
 // Auto writeback on exit
 void autoWrite() {
-  if (changeDir(binDir)) {
-    if(graderTable) tableWrite(graderTable);
+  if (graderTable) {
+    requireChangeDir(binDir);
+    requireChangeDir("config");
+    char temps[51];
+    sprintf(temps, "LastDir_%s_%s", classId, asgId);
+    tablePut(graderTable, temps, listGetCur(asgList));
+    tableWrite(graderTable);
   }
   if(changeDir(asgBinDir)) {
     if(asgTable) tableWrite(asgTable);
