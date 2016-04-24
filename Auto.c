@@ -65,7 +65,7 @@ int tempInt = 0;
 char tempString[STRLEN];
 List* tempList;
 
-int main(int argc, char **argv) { 
+int main(int argc, char **argv) {
 
   // Initialize program
   exeTable = tableRead("auto_exe");
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
   if(argc == 1) autoError("USAGE %s [flags] [class] assignment", exeId);
   if(argc >= 3 && argv[argc - 2][1] != "-") strcpy(classId, argv[argc - 2]);
   strcpy(asgId, argv[argc - 1]);
-  if(streq(asgId, "bin")) 
+  if(streq(asgId, "bin"))
     autoError("ASG <%s> invalid", asgId);
   // Get executable info
   helpTable = tableRead("help");
@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
       // 2: cmps012b-pt.s15
       chdir(temp);
       temp = strtok(NULL, "/");
-      if(tempInt == 1 && strcmp(temp, "class")) 
+      if(tempInt == 1 && strcmp(temp, "class"))
         autoError("CLASS not provided, implicitly or by argument");
     }
     strcpy(classId, temp);
@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
   // Get asglist
   changeDir(asgDir);
   asgList = dirList(asgId);
-  if(listGetSize(asgList) <= 0) 
+  if(listGetSize(asgList) <= 0)
     autoError("ASG <%s> has no submissions", asgId);
 
   // Get grader config
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
   tablePut(graderTable, "user.id", getlogin());
   realName(tempString, getlogin());
   tablePut(graderTable, "user.name", tempString);
-  autoPrint("GRADER <%s> (%s) loaded", tableGet(graderTable, "user.id"), 
+  autoPrint("GRADER <%s> (%s) loaded", tableGet(graderTable, "user.id"),
       tableGet(graderTable, "user.name"));
   tablePrint(graderTable, "%s: %s\n");
 
@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
 
   // Free data
   autoWrite();
-  return 0;  
+  return 0;
 }
 
 // Auto shell loop
@@ -180,11 +180,18 @@ void autoShell() {
       autoPrint("INFO would you like to save your changes to <%s>", studentId);
       if(autoAsk("y")) studentWrite();
       break;
+    } else if (commanded("first")) {
+      studentWrite();
+      if (!listMoveFront(asgList)) {
+        autoError("Couldn't move to first student <%s>",
+            currentDir());
+      }
+      studentRead();
     } else if(commanded("next")) {
       studentWrite();
       if(! listMoveNext(asgList)) {
         listMoveFront(asgList);
-        autoWarn("INFO end of list, moving to first student <%s>", 
+        autoWarn("INFO end of list, moving to first student <%s>",
             currentDir());
       }
       studentRead();
@@ -192,17 +199,24 @@ void autoShell() {
       studentWrite();
       if(! listMovePrev(asgList)) {
         listMoveBack(asgList);
-        autoWarn("INFO beginning of list, moving to last student <%s>", 
+        autoWarn("INFO beginning of list, moving to last student <%s>",
+            currentDir());
+      }
+      studentRead();
+    } else if (commanded("last")) {
+      studentWrite();
+      if (!listMoveBack(asgList)) {
+        autoError("Couldn't move to last student <%s>",
             currentDir());
       }
       studentRead();
     } else if(commanded("skip")) {
       if(! listMovePrev(asgList)) {
         listMoveBack(asgList);
-        autoWarn("INFO beginning of list, moving to last student <%s>", 
+        autoWarn("INFO beginning of list, moving to last student <%s>",
             currentDir());
       }
-      studentRead();	
+      studentRead();
     } else if(commanded("user")) {
       if(listMoveNext(cmdList)) {
         if(commanded("print")) {
@@ -228,16 +242,22 @@ void autoShell() {
         fclose(exe_test);
       } else {
         autoWarn("The assignment grading script, %s, doesn't yet exist in %s/\n",
-        asgId, asgBinDir);
+            asgId, asgBinDir);
         studentRead();
         continue;
       }
-      char stemp[21];
+      studentRead();
+      char stemp[101];
+      sprintf(stemp, "cp %s/%s .", asgBinDir, asgId);
+      system(stemp);
       sprintf(stemp, "./%s", asgId);
       system(stemp);
-      studentRead();
+      sprintf(stemp, "rm -f %s", asgId);
+      system(stemp);
       continue;
 
+
+      // the following doesn't get executed
       if (strcmp(asgId, "lab6")) {
         printf("Grade automation only ready for lab6\n");
         continue;
@@ -250,7 +270,7 @@ void autoShell() {
         studentWrite();
         if(! listMoveNext(asgList)) {
           listMoveFront(asgList);
-          autoWarn("INFO end of list, moving to first student <%s>", 
+          autoWarn("INFO end of list, moving to first student <%s>",
               currentDir());
         }
         studentRead();
@@ -303,7 +323,7 @@ void studentRead() {
   tablePut(studentTable, keyName, tempString);
   requireChangeDir(asgDir);
   requireChangeDir(listGetCur(asgList));
-  autoPrint("STUDENT <%s> (%s) loaded", studentId, 
+  autoPrint("STUDENT <%s> (%s) loaded", studentId,
       tableGet(studentTable, keyName));
 }
 
@@ -375,7 +395,7 @@ void autoPrompt() {
     autoInput(temp, "$");
     strcpy(cmd, temp);
     cmdList = listCreateFromToken(temp, " ");
-  }	
+  }
   listPrint(cmdList);
   listMoveFront(cmdList);
   if(listGetCur(cmdList)[0] == '-') {
@@ -719,7 +739,7 @@ void autoGrade(char *dir) {
       if (fp2) fclose(fp2);
       fp2 = fopen("diff4", "r");
       fprintf(fp, "Credibility Test %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
-      if (fp2 && fgetc(fp2) == EOF) diff++; 
+      if (fp2 && fgetc(fp2) == EOF) diff++;
       if (fp2) fclose(fp2);*/
 
     /*
@@ -737,7 +757,7 @@ void autoGrade(char *dir) {
        if (fp2) fclose(fp2);
        fp2 = fopen("diff8", "r");
        fprintf(fp, "\"make clean\" Test %s\n", (!fp2 || fp2 && fgetc(fp2) != EOF) ? "Failed" : "Passed");
-       if (fp2 && fgetc(fp2) == EOF) diff++; 
+       if (fp2 && fgetc(fp2) == EOF) diff++;
        if (fp2) fclose(fp2);
        */
 
@@ -805,7 +825,7 @@ void sendMail() {
       system("./mailscript");
       system("rm mailscript");
       debugPrint("Mail Routine Complete");
-      break; 
+      break;
     } else {
       printf("Invalid Command!\nPlease Enter An Appropriate Character <y/n> [y]\n");
     }
@@ -816,11 +836,11 @@ void sendMail() {
 
   /*
 
-  //	printf("Mail method not yet available\n");
-  //	return;
+  //  printf("Mail method not yet available\n");
+  //  return;
   char path[500];
-  //	sprintf(path, "/afs/cats.ucsc.edu/class/cmps011-pt.w15/bin/%s/mail_all", dir);
-  //	FILE *fp = fopen(path, "w");
+  //  sprintf(path, "/afs/cats.ucsc.edu/class/cmps011-pt.w15/bin/%s/mail_all", dir);
+  //  FILE *fp = fopen(path, "w");
   FILE *fp;
   struct dirent **fileList;
   sprintf(path, "/afs/cats.ucsc.edu/class/cmps012b-pt.s15/%s", dir);
@@ -834,22 +854,22 @@ void sendMail() {
   FILE *fp2 = fopen("/afs/cats.ucsc.edu/class/cmps012b-pt.s15/bin/mailscript", "w");
   fprintf(fp2, "#!/bin/csh\ncd /afs/cats.ucsc.edu/class/cmps012b-pt.s15/%s\n", dir);
   int mailcount = 0;
-  //	char temp[501];
-  //	char commands[filecount - 2][501];
+  //  char temp[501];
+  //  char commands[filecount - 2][501];
   for (int i = 2; i < filecount; i++) { //start at i = 2 because we are ignoring the "." and ".." directories
   chdir(fileList[i]->d_name);
   fp = fopen("grade.txt", "r");
   if (!fp) printf("grade.txt does not exist for %s\n", fileList[i]->d_name);
   else {
   fprintf (fp2, "cd %s\necho \"Mailing %s@ucsc.edu\"\nmailx -s \"grade for %s\" %s@ucsc.edu < grade.txt\ncd ..\nsleep 3\n", fileList[i]->d_name, fileList[i]->d_name, dir, fileList[i]->d_name);
-  //			strncpy(commands[i - 2], temp, 500);
-  //			printf("%s\n", commands[i - 2]);
+  //      strncpy(commands[i - 2], temp, 500);
+  //      printf("%s\n", commands[i - 2]);
   fclose(fp);
   mailcount++;
   }
   chdir("..");
   }
-  //	fclose(fp);
+  //  fclose(fp);
   for (int i = 0; i < filecount; i++)
   free(fileList[i]);
   free(fileList);
@@ -1014,8 +1034,8 @@ void restoreGrades(char *dir) { //buggy
     return;
   }
   char path[501];
-  //	sprintf(path, "/afs/cats.ucsc.edu/class/cmps011-pt.w15/bin/%s/mail_all", dir);
-  //	FILE *fp = fopen(path, "w");
+  //  sprintf(path, "/afs/cats.ucsc.edu/class/cmps011-pt.w15/bin/%s/mail_all", dir);
+  //  FILE *fp = fopen(path, "w");
   //FILE *fp;
   struct dirent **fileList;
   sprintf(path, "/afs/cats.ucsc.edu/class/cmps012b-pt.s15/bin/%s/performance", dir);

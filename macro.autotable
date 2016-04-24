@@ -3,8 +3,10 @@ da: deduct add
 dp: deduct print
 dr: deduct rm
 g: grade
+f: first
 n: next
 p: prev
+l: last
 s: skip
 u: user
 up: user print
