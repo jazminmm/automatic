@@ -212,7 +212,7 @@ void autoShell() {
 						currentDir());
 			}
 			studentRead();
-		} else if(commanded("skip")) {
+		} else if(0 && commanded("skip")) { // This seems to be a copy of previous
 			if(! listMovePrev(asgList)) {
 				listMoveBack(asgList);
 				autoWarn("INFO beginning of list, moving to last student <%s>",
@@ -236,28 +236,58 @@ void autoShell() {
 			sendMail();
 			break;
 		} else if (commanded("grade")) {
-			//printf("This function is not yet available\n");
-			requireChangeDir(asgBinDir);
-			//requireChangeDir(asgId);
-			FILE *exe_test = fopen(asgId, "r");
-			if (exe_test) {
-				fclose(exe_test);
-			} else {
-				autoWarn("The assignment grading script, %s, doesn't yet exist in %s/\n",
-						asgId, asgBinDir);
-				studentRead();
-				continue;
+			int autocont = 0;
+			if (listMoveNext(cmdList)) {
+				if (commanded("all")) {
+					autocont = 1;
+				}
 			}
-			studentRead();
-			char stemp[101];
-			sprintf(stemp, "cp %s/%s .", asgBinDir, asgId);
-			system(stemp);
-			sprintf(stemp, "./%s", asgId);
-			system(stemp);
-			sprintf(stemp, "rm -f %s", asgId);
-			system(stemp);
-			continue;
+			int count = -1;
+			do {
+				if (count < 0) {
+					count = 0;
+				} else {
+					studentWrite();
+					if(! listMoveNext(asgList)) {
+						listMoveFront(asgList);
+						autoWarn("INFO end of list, moving to first student <%s>",
+								currentDir());
+					}
+					studentRead();
+				}
+				//printf("This function is not yet available\n");
+				requireChangeDir(asgBinDir);
+				//requireChangeDir(asgId);
+				FILE *exe_test = fopen(asgId, "r");
+				if (exe_test) {
+					fclose(exe_test);
+				} else {
+					autoWarn("The assignment grading script, %s, doesn't yet exist in %s/\n",
+							asgId, asgBinDir);
+					studentRead();
+					break;
+				}
+				studentRead();
+				char stemp[101];
+				sprintf(stemp, "cp %s/%s .", asgBinDir, asgId);
+				system(stemp);
+				sprintf(stemp, "./%s", asgId);
+				system(stemp);
+				sprintf(stemp, "rm -f %s", asgId);
+				system(stemp);
+				if (++count == 5) {
+					autoPrint("Would you like to quit autograde? [y/<anything>]");
+					char stopcont[1024] = {};
+					fgets(stopcont, 1023, stdin);
+					stopcont[strlen(stopcont) - 1] = '\0';
+					if (streq(stopcont, "y")) {
+						break;
+					}
+					count = 0;
+				}
+			} while(autocont);
 
+			continue;
 
 			// the following doesn't get executed
 			if (strcmp(asgId, "lab6")) {

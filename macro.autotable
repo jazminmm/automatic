@@ -3,6 +3,7 @@ da: deduct add
 dp: deduct print
 dr: deduct rm
 g: grade
+ga: grade all
 f: first
 n: next
 p: prev
