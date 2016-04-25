@@ -253,7 +253,7 @@ void autoShell() {
 						autoWarn("INFO end of list, moving to first student <%s>",
 								currentDir());
 					}
-					studentRead();
+					//studentRead();
 				}
 				//printf("This function is not yet available\n");
 				requireChangeDir(asgBinDir);
