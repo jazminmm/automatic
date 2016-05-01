@@ -53,6 +53,10 @@ char classDir[STRLEN]; // Class directory
 char asgId[STRLEN]; // pa1
 char asgDir[STRLEN]; // Assignment submission directory. called pa1
 char asgBinDir[STRLEN]; // Assignment bin directory. called bin/pa1
+
+char configId[STRLEN];
+char configDir[STRLEN];
+
 Table* asgTable; // Assignment config
 List* asgList; // List of all students
 List* asgDupList;
@@ -68,9 +72,18 @@ List* tempList;
 int main(int argc, char **argv) {
 
 	// Initialize program
-	exeTable = tableRead("auto_exe");
-	tablePut(exeTable, "exe.name", "automatic");
-	tablePut(exeTable, "exe.id", "auto");
+	requireChangeDir("automatic_config"); // this is where the config will now be, #define maybe?
+	exeTable = tableRead("main_config");
+	if (!tableGet(exeTable, "exe.name")) tablePut(exeTable, "exe.name", "automatic");
+	if (!tableGet(exeTable, "exe.id")) tablePut(exeTable, "exe.id", "auto");
+	if (!tableGet(exeTable, "class.id")) autoError("You are required to specify a class ID as 'class.id'");
+	if (!tableGet(exeTable, "class.dir")) autoError("You are reqired to specify a class directory as 'class.dir'");
+	tablePut(exeTable, "config.id", "automatic_config"); // with future changes, we may allow it to be elsewhere
+	tablePut(exeTable, "config.dir", currentPath());
+	sprintf(configId, "%s", tableGet(exeTable, "config.id"));
+	sprintf(configDir, "%s", tableGet(exeTable, "config.dir"));
+	sprintf(classId, "%s", tableGet(exeTable, "class.id"));
+	sprintf(classDir, "%s", tableGet(exeTable, "class.dir"));
 	asgList = NULL;
 
 	// Get arguments
@@ -80,17 +93,18 @@ int main(int argc, char **argv) {
 	strcpy(asgId, argv[argc - 1]);
 	if(streq(asgId, "bin"))
 		autoError("ASG <%s> invalid", asgId);
+	if (!tableGet(exeTable, "exe.dir")) {
+		changeDir("..");
+		tablePut(exeTable, "exe.dir", currentPath());
+		requireChangeDir(configDir);
+	}
+	//tablePrint(exeTable, "%s: %s\n");
+	//debugPrint("tableGet(exe.name) = %s", tableGet(exeTable, "exe.name"));
+
 	// Get executable info
 	helpTable = tableRead("help");
 	macroTable = tableRead("macro");
-	tablePut(exeTable, "exe.dir", currentPath());
-	//tablePrint(exeTable, "%s: %s\n");
-	//debugPrint("tableGet(exe.name) = %s", tableGet(exeTable, "exe.name"));
-	if(! streq(currentDir(), tableGet(exeTable, "exe.name"))) {
-		requireChangeDir(tableGet(exeTable, "exe.name"));
-		tablePut(exeTable, "exe.dir", currentPath());
-		changeDir("..");
-	}
+
 	debugPrint("EXE <%s> loaded", tableGet(exeTable, "exe.dir"));
 
 	// Get class info
@@ -109,16 +123,16 @@ int main(int argc, char **argv) {
 				autoError("CLASS not provided, implicitly or by argument");
 		}
 		strcpy(classId, temp);
+		requireChangeDir(classId);
+		strcpy(classDir, currentPath());
 	} else {
-		changeDir("/afs/cats.ucsc.edu/class");
+		//requireChangeDir(classDir); // called anyway
 	}
-	requireChangeDir(classId);
-	strcpy(classDir, currentPath());
 	autoPrint("CLASS <%s> loaded", classId);
 	debugPrint("CLASS dir <%s> loaded", classDir);
 
 	// Get bin info
-	changeDir(classDir);
+	requireChangeDir(classDir);
 	requireChangeDir("bin");
 	strcpy(binDir, currentPath());
 	debugPrint("BIN <%s> loaded", binDir);
@@ -130,7 +144,7 @@ int main(int argc, char **argv) {
 	strcpy(asgDir, currentPath());
 
 	// Get asgbin info
-	changeDir(binDir);
+	changeDir(configDir);
 	assertChangeDir(asgId);
 	strcpy(asgBinDir, currentPath());
 	asgTable = tableRead(asgId);
@@ -144,7 +158,7 @@ int main(int argc, char **argv) {
 
 	// Get grader config
 	changeDir(binDir);
-	assertChangeDir("config");
+	assertChangeDir(configDir);
 	assertChangeDir("grader");
 	sprintf(tempString, "grader_%s", getlogin());
 	graderTable = tableRead(tempString);
@@ -449,9 +463,10 @@ bool autoAsk(char *std) {
 
 // Auto writeback on exit
 void autoWrite() {
+	requireChangeDir(binDir);
+	requireChangeDir(configDir);
+	if(exeTable) tableWrite(exeTable);
 	if (graderTable) {
-		requireChangeDir(binDir);
-		requireChangeDir("config");
 		requireChangeDir("grader");
 		char temps[51];
 		sprintf(temps, "LastDir_%s_%s", classId, asgId);
@@ -464,7 +479,6 @@ void autoWrite() {
 	if(asgList) listDestroy(asgList);
 	if(cmdList) listDestroy(cmdList);
 	if(tempList) listDestroy(tempList);
-	if(exeTable) tableDestroy(exeTable);
 	if(helpTable) tableDestroy(helpTable);
 	if(macroTable) tableDestroy(macroTable);
 	debugPrint("EXE safely exited", exeId);
