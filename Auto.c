@@ -145,6 +145,7 @@ int main(int argc, char **argv) {
 	// Get grader config
 	changeDir(binDir);
 	assertChangeDir("config");
+	assertChangeDir("grader");
 	sprintf(tempString, "grader_%s", getlogin());
 	graderTable = tableRead(tempString);
 	tablePut(graderTable, "user.id", getlogin());
@@ -451,6 +452,7 @@ void autoWrite() {
 	if (graderTable) {
 		requireChangeDir(binDir);
 		requireChangeDir("config");
+		requireChangeDir("grader");
 		char temps[51];
 		sprintf(temps, "LastDir_%s_%s", classId, asgId);
 		tablePut(graderTable, temps, listGetCur(asgList));
