@@ -1,6 +1,6 @@
 exe.name: automatic
-config.id: automatic_config
 exe.dir: /afs/cats.ucsc.edu/class/cmps012b-pt.s16/bin/automatic
+config.id: automatic_config
 exe.id: auto
 config.dir: /afs/cats.ucsc.edu/class/cmps012b-pt.s16/bin/automatic/automatic_config
 class.id: cmps012b-pt.s16
