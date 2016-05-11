@@ -150,6 +150,19 @@ int main(int argc, char **argv) {
 	//changeDir(asgBinDir);
 	asgTable = tableRead(asgId);
 	if (!tableSize(asgTable)) autoError("%s/%s.autotable Not Found", asgBinDir, asgId);
+	{
+		char numcon[4] = "1"; //this part is to force that entries for all part of assignment are added
+		int num = 1;
+		char tempstr[50];
+		while (tableGet(asgTable, numcon)) {
+			sprintf(tempstr, "%s.", numcon);
+			if (!tableGet(asgTable, tempstr)) autoError("Invalid format in %s/%s.autotable", asgBinDir, asgId);
+			sprintf(tempstr, "%sx", numcon);
+			if (!tableGet(asgTable, tempstr)) autoError("Invalid format in %s/%s.autotable", asgBinDir, asgId);
+			num++;
+			sprintf(numcon, "%d", num);
+		}
+	}
 	debugPrint("ASG bin <%s> loaded", asgBinDir);
 
 	// Get asglist
