@@ -118,10 +118,14 @@ int hashListPrint(HashList *l, const char *format);
 // Prints all keys in the HashList in format
 int hashListPrintAll(HashList *l, const char *format);
 
+int hashListDebugPrint(HashList *l, const char *format);
+
 // calls HashListPrint on all existing HashLists in the table
 void tablePrint(Table *t, const char *format);
 
 // calls HashListPrintAll on all existing HashLists in the table
 void tablePrintAll(Table *t, const char *format);
+
+void tableDebugPrint(Table *t, const char *format);
 
 #endif //_TABLE_H_
