@@ -204,6 +204,8 @@ void autoShell() {
    if (graderTable) { // attempt to seek to the last place the grader was at before they exited
       char temps[51];
       sprintf(temps, "LastDir_%s_%s", classId, asgId);
+      // set startDir to the last directory, try to seek to that directory, if
+      // it doesn't: warn grader to that effect
       if (startDir = tableGet(graderTable, temps)) if (!listSeek(asgList, startDir)) autoWarn("The directory you were last at no longer exists");
    }
    studentRead();
@@ -269,8 +271,8 @@ void autoShell() {
          sendMail();
          break;
       } else if (commanded("grade")) {
-         printf("This method is not yet ready\n");
-         continue;
+         //printf("This method is not yet ready\n");
+         //continue;
          int autocont = 0;
          if (listMoveNext(cmdList)) {
             if (commanded("all")) {
@@ -310,37 +312,32 @@ void autoShell() {
             studentRead();
             sprintf(stemp, "Grading_%s_%s", classId, asgId);
             if (!tableGet(graderTable, stemp)) {
+               printf("\n");
                autoWarn("You have not yet defined your grading responsibilities for %s", asgId);
-               debugPrint("Here are the possible grading sections:");
-               for (int i = 1; i <= numSections; i++) {
-                  sprintf(stemp, "%d", i);
-                  debugPrint("%d: %s", i, tableGet(asgTable, stemp));
-                  //sprintf(stemp, "%d.", i);
-                  //debugPrint("%s", tableGet(asgTable, stemp));
-                  sprintf(stemp, "%dx", i);
-                  debugPrint("\tMax Points: %s", tableGet(asgTable, stemp));
-               }
-               printf("Please enter the sections you are responsible for:\n");
+               autoConfigureResponsibilities();
             }
             for(;;) {
-               autoPrint("Please enter a command (\"-h\" is help)");
+               printf("\nPlease enter a command (\"-h\" is help)\n[%s@Grade Utilitiy %s] ", tableGet(graderTable, "user.id"),
+                     listGetCur(asgList));
                fgets(stemp, 100, stdin);
-               stemp[(strlen(stemp) - 1 <= 0 ? 0 : strlen(stemp) - 1)] = '\0';
+               stemp[(strlen(stemp) - 1 <= 0 ? 0 : strlen(stemp) - 1)] = '\0'; // cut off the newline
                if (streq(stemp, "-h")) {
-                  autoPrint("-h: help\n-w: write grade");
-                  autoPrint("");
+                  printf("-h: help\n-w: write grade\n");
+                  printf("-cr: change responsibilities\n");
                } else if (streq(stemp, "-w")) {
-                  autoPrint("Now writing grade for %s", listGetCur(asgList));
+                  printf("Now writing grade for %s\n", listGetCur(asgList));
                   break; // write to table
+               } else if (streq(stemp, "-cr")) {
+                  autoConfigureResponsibilities();
                } else {
-                  autoPrint("Invalid command");
+                  printf("Invalid command\n");
                }
             }
-            printf("Finished grading %s\n", listGetCur(asgList));
+            printf("\nFinished grading %s\n", listGetCur(asgList));
             if (++count == 5) {
-               autoPrint("Would you like to quit autograde? [y/<anything>]");
-               char stopcont[1024] = {};
-               fgets(stopcont, 1023, stdin);
+               printf("Would you like to quit autograde? [y/<anything>]: ");
+               char stopcont[101] = {};
+               fgets(stopcont, 100, stdin);
                stopcont[strlen(stopcont) - 1] = '\0';
                if (streq(stopcont, "y")) {
                   break;
@@ -504,6 +501,55 @@ bool autoAsk(char *std) {
       || streq(result, "yes")
       || streq(result, "Yes")
       || streq(result, "YES");
+}
+
+void autoConfigureResponsibilities() {
+   char stemp[101];
+   debugPrint("Here are the possible grading sections:");
+   for (int i = 1; i <= numSections; i++) {
+      sprintf(stemp, "%d", i);
+      debugPrint("%d: %s", i, tableGet(asgTable, stemp));
+      //sprintf(stemp, "%d.", i);
+      //debugPrint("%s", tableGet(asgTable, stemp));
+      sprintf(stemp, "%dx", i);
+      debugPrint("\tMax Points: %s", tableGet(asgTable, stemp));
+   }
+   printf("Please enter the sections you are responsible for.\nOne number per line.\nEnd if line has no numbers.\n");
+   List *responsibilityList = listCreate();
+   while(1) {
+      printf("Choose Responsibility: ");
+      stemp[0] = '\0';
+      fgets(stemp, 100, stdin);
+      int start = -1;
+      int stop = -1;
+      for (int i = 0; i < strlen(stemp); i++) {
+         if (isdigit(stemp[i])) {
+            start = i;
+            break;
+         }
+      }
+      if (start == -1) break;
+      for (int i = start + 1; i < strlen(stemp); i++) {
+         if (!isdigit(stemp[i])) {
+            stop = i + 1;
+            break;
+         }
+      }
+      if (stop == -1) stop = strlen(stemp);
+      stemp[stop] = '\0';
+      int newResponsibility = atoi(stemp + start);
+      if (newResponsibility >= 1 && newResponsibility <= numSections) {
+         sprintf(stemp, "%d", newResponsibility);
+         listAppend(responsibilityList, stemp);
+      } else {
+         autoWarn("Section %d doesn't exist and will not be added to %s's responsibilities", newResponsibility, tableGet(graderTable, "user.id"));
+      }
+   }
+   printf("Your responsibilities are now:\n");
+   if (listGetSize(responsibilityList)) listPrint(responsibilityList);
+   else printf("No Responsibilities\n");
+   sprintf(stemp, "Grading_%s_%s", classId, asgId);
+   tablePutList(graderTable, stemp, responsibilityList, " ");
 }
 
 // Auto writeback on exit

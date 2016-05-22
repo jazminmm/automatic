@@ -215,19 +215,20 @@ void tablePutList(Table *t, char *key, List *l, char *delimiter) {
    if (!l) autoError("NULL List passed to tablePutList()");
    if (!key || !delimiter) autoError("NULL String passed to tablePutList()");
    int hash = getHash(key, t->maxSize);
-   if (!t->table[hash]) {
+   if (!t->table[hash]) { // the specified index doesn't have a hashList, make one
       t->table[hash] = hashListCreate();
    }
-   char value[listGetSize(l) * (500 + strlen(delimiter) - 1) + 1];
-   strncpy(value, "", listGetSize(l) * (500 + strlen(delimiter) - 1) + 1);
-   listMoveFront(l);
-   while (listMoveNext(l)) {
-      strcat(value, listGetCur(l));
-      strcat(value, delimiter);
+   char value[listGetSize(l) * (500 + strlen(delimiter) - 1) + 1]; // numberItems(sizeof(ListItem) + delimiter size)
+   value[0] = '\0';
+   if (listMoveFront(l)) {
+      do {
+         strcat(value, listGetCur(l));
+         strcat(value, delimiter);
+      } while(listMoveNext(l));
    }
    listDestroy(l);
    if (hashListAdd(t->table[hash], key, value)) t->size++;
-   if (tableSize(t) == tableMaxSize(t)) rehash(t);
+   if (tableSize(t) == tableMaxSize(t)) rehash(t); // when the size increases, we may have to rehash
 }
 
 void tableRemove(Table *t, char *key) {
@@ -292,10 +293,10 @@ bool hashListAdd(HashList *l, char *key, char *value) {
    bool incsize = !hashListRemove(l, key);
    //debugPrint("hashListRemove() called");
    HashListNode *temp = malloc(sizeof(HashListNode));
-   temp->key = calloc(101, sizeof(char));
+   temp->key = calloc(strlen(key) + 1, sizeof(char));
    sprintf(temp->key, "%s", key);
    //debugPrint("Key is now %s", temp->key);
-   temp->value = calloc(401, sizeof(char));
+   temp->value = calloc(strlen(value) + 1, sizeof(char));
    sprintf(temp->value, "%s", value);
    if(!l->first || !l->last) {
       l->first = temp;
