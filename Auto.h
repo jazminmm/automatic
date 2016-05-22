@@ -9,7 +9,7 @@
 #include "Table.h"
 #include "Extra.h"
 
-void autoGrade(char *dir);
+void autoGrade();
 
 void sendMail();
 
