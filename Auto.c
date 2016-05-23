@@ -303,7 +303,12 @@ void studentRead() {
       sprintf(tempstr, "grade.%s", numcon);
       if (!tableGet(studentTable, tempstr)) {
          tablePut(studentTable, tempstr, "U");
-         autoWarn("Adding entry for part %d of %s to %s", num, asgId, studentId);
+         autoWarn("Adding default grade entry for section %d of %s to %s", num, asgId, studentId);
+      }
+      sprintf(tempstr, "notes.%s", numcon);
+      if (!tableGet(studentTable, tempstr)) {
+         tablePut(studentTable, tempstr, "");
+         autoWarn("Adding default notes entry for section %d of %s to %s", num, asgId, studentId);
       }
       num++;
       sprintf(numcon, "%d", num);
@@ -549,55 +554,118 @@ void autoGrade() {
          autoWarn("You have not yet defined your grading responsibilities for %s", asgId);
          autoConfigureResponsibilities();
       }
+      char grade[numSections][5];
+      char notes[numSections][401];
+      sprintf(stemp, "Grading_%s_%s", classId, asgId);
+      List *responsibilityList = tableGetList(graderTable, stemp, " ");
+      int skipCurrent = 1; // whether this student was already graded
+      for (int i = 1; i <= numSections; i++) {
+         sprintf(stemp, "grade.%d", i);
+         sprintf(grade[i - 1], "%s", tableGet(studentTable, stemp));
+         sprintf(stemp, "notes.%d", i);
+         char newLineParse[401]; // convert "\\n" to "\n"
+         int tempPointer1 = 0;
+         int tempPointer2 = 0;
+         sprintf(newLineParse, "%s", tableGet(studentTable, stemp));
+         while (tempPointer1 < strlen(newLineParse)) {
+            if (newLineParse[tempPointer1] == '\\') {
+               notes[i - 1][tempPointer2++] = newLineParse[++tempPointer1] == 'n' ? '\n' : newLineParse[tempPointer1];
+               tempPointer1++;
+            } else {
+               notes[i - 1][tempPointer2++] = newLineParse[tempPointer1++];
+            }
+         }
+         notes[i - 1][tempPointer2] = '\0';
+         sprintf(stemp, "%d", i);
+         if (listContains(responsibilityList, stemp) && streq(grade[i - 1], "U")) {
+            skipCurrent = 0;
+            //printf("Section %d is ungraded\n", i);
+         }
+      }
       for(;;) {
-         printf("\nPlease enter a command (\"-h\" is help)\n\n[%s@Grade Utilitiy %s] ", tableGet(graderTable, "user.id"),
+         if (skipCurrent) {
+            printf("%s has already been graded\n", listGetCur(asgList));
+            break;
+         }
+         printf("\nPlease enter a command (\"-h\" is help)\n\n[%s@autoGrade %s] ", tableGet(graderTable, "user.id"),
                listGetCur(asgList));
          fgets(stemp, 100, stdin);
          stemp[(strlen(stemp) - 1 <= 0 ? 0 : strlen(stemp) - 1)] = '\0'; // cut off the newline
          if (streq(stemp, "-h")) {
             printf("-h: help\n-w: write grade\n-s: skip temporarily\n");
-            printf("-cx: change points for section x\n");
+            printf("-cgx: change grade for section x\n-cnx: change notes for section x\n");
             printf("-nr: new responsibilities\n-cr: check responsibilities\n");
+            printf("-cs: check student's grade and comments (for sections you are responsible for only)\n");
+            printf("<anything else>: system(str)\n");
          } else if (streq(stemp, "-w")) {
-            printf("Now writing grade for %s\n", listGetCur(asgList));
+            for (int i = 1; i <= numSections; i++) {
+               sprintf(stemp, "%d", i);
+               if (!listContains(responsibilityList, stemp)) continue;
+               sprintf(stemp, "grade.%d", i);
+               tablePut(studentTable, stemp, grade[i - 1]);
+               sprintf(stemp, "notes.%d", i);
+               char newLineParse[401]; // convert "\\n" to "\n"
+               int tempPointer1 = 0;
+               int tempPointer2 = 0;
+               while (tempPointer2 < strlen(notes[i - 1])) {
+                  if (notes[i - 1][tempPointer2] == '\n') {
+                     newLineParse[tempPointer1++] = '\\';
+                     newLineParse[tempPointer1++] = 'n';
+                     tempPointer2++;
+                  } else {
+                     newLineParse[tempPointer1++] = notes[i - 1][tempPointer2++];
+                  }
+               }
+               newLineParse[tempPointer1] = '\0';
+               tablePut(studentTable, stemp, newLineParse);
+            }
+            printf("Now writing %s\n", listGetCur(asgList));
             break; // write to table
          } else if (streq(stemp, "-s")) {
-            printf("Now skipping grade for %s\n", listGetCur(asgList));
+            printf("Now skipping %s\n", listGetCur(asgList));
             break;
-         } else if (!strncmp(stemp, "-c", 2)) { // check if it start with -c
-            if (!isdigit(stemp[2])) {
+         } else if (streq(stemp, "-nr")) {
+            autoConfigureResponsibilities();
+         } else if (streq(stemp, "-cr")) {
+            debugPrint("Here are the possible grading sections (that you are responsible for):"); // print out the sections and their maxpts
+            for (int i = 1; i <= numSections; i++) {
+               sprintf(stemp, "%d", i);
+               if (!listContains(responsibilityList, stemp)) continue;
+               debugPrint("%d: %s", i, tableGet(asgTable, stemp));
+               sprintf(stemp, "%d.maxpts", i);
+               debugPrint("\tMax Points: %s", tableGet(asgTable, stemp));
+            }
+            sprintf(stemp, "Grading_%s_%s", classId, asgId);
+            printf("Your responsibilities are sections:\n%s\n", tableGet(graderTable, stemp)); // print the value in the key containing all sections
+         } else if (!strncmp(stemp, "-cg", 3)) { // check if it starts with -cg
+            if (!isdigit(stemp[3])) {
                printf("This is not a valid section\n");
                continue;
             }
             int stop = -1;
-            for (int i = 2; i < strlen(stemp); i++) { // check that we are trying to grade a valid section
+            for (int i = 3; i < strlen(stemp); i++) { // check that we are trying to grade a valid section
                if (!isdigit(stemp[i])) {
                   stop = i;
                }
             }
             if (stop == -1) stop = strlen(stemp);
             stemp[stop] = '\0';
-            int section = atoi(stemp + 2);
-            if (section > numSections) {
+            int section = atoi(stemp + 3);
+            if (section == 0 || section > numSections) {
                printf("This is not a valid section\n");
                continue;
             }
-            sprintf(stemp, "Grading_%s_%s", classId, asgId);
-            List *responsibilityList = tableGetList(graderTable, stemp, " ");
-            int isResponsible = false; // whether you are responsible for what you are about to grade
-            if (listMoveFront(responsibilityList)) {
-               do {
-                  if (atoi(listGetCur(responsibilityList)) == section) {
-                     isResponsible = true;
-                     break;
-                  }
-               } while (listMoveNext(responsibilityList));
-            }
-            if (!isResponsible) {
+            if (!listContains(responsibilityList, stemp + 3)) { // cut off the "-cg"
                printf("You do not have responsibility for grading section %d\n", section);
                continue;
             }
-            printf("How many points for section %d? (P: perfect, C: charity / 0 if not def): ");
+            sprintf(stemp, "%d", section);
+            debugPrint("Section %d: %s", section, tableGet(asgTable, stemp));
+            debugPrint("\tCurrent Points: %s", grade[section - 1]);
+            sprintf(stemp, "%d.maxpts", section);
+            debugPrint("\tMax Points: %s", tableGet(asgTable, stemp));
+            debugPrint("\tNotes:\n%s\n", notes[section - 1]);
+            printf("How many points for section %d? (P: perfect, C: charity / 0 if not def): ", section);
             fgets(stemp, 100, stdin);
             stemp[strlen(stemp) - 1] = '\0';
             int first = true; // we call fgets above, only call it in the loop from the second time and on
@@ -607,10 +675,12 @@ void autoGrade() {
                   stemp[strlen(stemp) - 1] = '\0';
                } else first = false;
                if (streq(stemp, "P")) {
-                  printf("Giving %s a perfect score for section %d\n", listGetCur(asgList), section);
+                  sprintf(grade[section - 1], "P");
+                  debugPrint("Giving %s a perfect score for section %d", listGetCur(asgList), section);
                   break;
                } else if (streq(stemp, "C")) {
-                  printf("Giving %s charity points for section %d\n", listGetCur(asgList), section);
+                  sprintf(grade[section - 1], "C");
+                  debugPrint("Giving %s charity points for section %d", listGetCur(asgList), section);
                   break;
                }
                int start = -1;
@@ -636,30 +706,67 @@ void autoGrade() {
                int tempGrade = atoi(stemp + start);
                sprintf(stemp, "%d.maxpts", section);
                if (tempGrade >= 0 && tempGrade < tableGetInt(asgTable, stemp)) {
-                  printf("Giving %s %d points for section %d\n", listGetCur(asgList), tempGrade, section);
+                  sprintf(grade[section - 1], "%d", tempGrade);
+                  debugPrint("Giving %s %d points for section %d", listGetCur(asgList), tempGrade, section);
                   break;
                } else if (tempGrade == tableGetInt(asgTable, stemp)) {
-                  printf("Giving %s a perfect score for section %d\n", listGetCur(asgList), section);
+                  sprintf(grade[section - 1], "P");
+                  debugPrint("Giving %s a perfect score for section %d", listGetCur(asgList), section);
                   break;
                }
                printf("Please enter a valid score for section %d: ", section);
             }
-         } else if (streq(stemp, "-nr")) {
-            autoConfigureResponsibilities();
-         } else if (streq(stemp, "-cr")) {
-            debugPrint("Here are the possible grading sections:");
+         } else if (!strncmp(stemp, "-cn", 3)) {
+            if (!isdigit(stemp[3])) {
+               printf("This is not a valid section\n");
+               continue;
+            }
+            int stop = -1;
+            for (int i = 3; i < strlen(stemp); i++) { // check that we are trying to grade a valid section
+               if (!isdigit(stemp[i])) {
+                  stop = i;
+               }
+            }
+            if (stop == -1) stop = strlen(stemp);
+            stemp[stop] = '\0';
+            int section = atoi(stemp + 3);
+            if (section == 0 || section > numSections) {
+               printf("This is not a valid section\n");
+               continue;
+            }
+            if (!listContains(responsibilityList, stemp + 3)) { // cut off the "-cg"
+               printf("You do not have responsibility for grading section %d\n", section);
+               continue;
+            }
+            sprintf(stemp, "%d", section);
+            debugPrint("Section %d: %s", section, tableGet(asgTable, stemp));
+            debugPrint("\tCurrent Points: %s", grade[section - 1]);
+            sprintf(stemp, "%d.maxpts", section);
+            debugPrint("\tMax Points: %s", tableGet(asgTable, stemp));
+            debugPrint("\tNotes:\n%s\n", notes[section - 1]);
+            printf("Please enter your comments followed by an empty line:\n");
+            int noteSize = 0;
+            notes[section - 1][0] = '\0'; // clear the current note for this section
+            do {
+               noteSize += strlen(fgets(stemp, 100, stdin));
+               if (strlen(stemp) < 2) break;
+               if (noteSize < 401) strcat(notes[section - 1], stemp);
+            } while(1);
+            debugPrint("New note for section %d:\n%s\n", section, notes[section - 1]);
+         } else if (streq(stemp, "-cs")) {
+            debugPrint("Your grades and comments are:\n");
             for (int i = 1; i <= numSections; i++) {
                sprintf(stemp, "%d", i);
-               debugPrint("%d: %s", i, tableGet(asgTable, stemp));
-               sprintf(stemp, "%d.maxpts", i);
-               debugPrint("\tMax Points: %s", tableGet(asgTable, stemp));
+               if (!listContains(responsibilityList, stemp)) continue;
+               debugPrint("Grade for %s is %s and notes are:\n%s\n", tableGet(asgTable, stemp), grade[i - 1], notes[i - 1]);
             }
-            sprintf(stemp, "Grading_%s_%s", classId, asgId);
-            printf("Your responsibilities are sections:\n%s\n", tableGet(graderTable, stemp));
          } else {
-            printf("Invalid command\n");
+            debugPrint("system(%s)", stemp);
+            system(stemp);
+            //printf("Invalid command\n");
          }
       }
+      listDestroy(responsibilityList);
       printf("\nFinished grading %s\n", listGetCur(asgList));
       if (++count == 5) {
          printf("Would you like to quit autograde? [y/<anything>]: ");
