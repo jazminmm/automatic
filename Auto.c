@@ -765,14 +765,71 @@ void autoGrade() {
             sprintf(stemp, "%d.maxpts", section);
             debugPrint("\tMax Points: %s", tableGet(asgTable, stemp));
             debugPrint("\tNotes:\n%s\n", notes[section - 1]);
-            printf("Please enter your comments followed by an empty line:\n");
-            int noteSize = 0;
-            notes[section - 1][0] = '\0'; // clear the current note for this section
-            do {
-               noteSize += strlen(fgets(stemp, 100, stdin));
-               if (strlen(stemp) < 2) break;
-               if (noteSize < 401) strcat(notes[section - 1], stemp);
-            } while(1);
+            int numDesc = 0; // number of pre-defined descriptions for this section
+            while (1) {
+               numDesc++; // case for 1 is assumed to be covered since section.desc.1 is required for auto to run
+               sprintf(stemp, "%d.desc.%d", section, numDesc + 1);
+               if (!tableGet(asgTable, stemp)) break;
+            }
+            debugPrint("Custom descriptions include:");
+            for (int i = 1; i <= numDesc; i++) {
+               sprintf(stemp, "%d.desc.%d", section, i);
+               char stemp2[401];
+               sprintf(stemp2, "%s", tableGet(asgTable, stemp));
+               debugPrint("%d:", i);
+               printf("\t");
+               for (int j = 0; j < strlen(stemp2); j++) {
+                  if (stemp2[j] == '\\') {
+                     printf("\n");
+                     printf("\t");
+                     j++;
+                  } else {
+                     printf("%c", stemp2[j]);
+                  }
+               }
+               printf("\n");
+            }
+            printf("\nWould you like to enter a custom message or one of the default ones?\n");
+            printf("Please type a number for the above description you would like or 'c' for custom: ");
+            char predefstr[101] = ""; // emptry string is custom
+            while (1) {
+               fgets(stemp, 100, stdin);
+               stemp[strlen(stemp) ? strlen(stemp) - 1 : 0] = '\0';
+               char stemp2[101];
+               sprintf(stemp2, "%d.desc.%s", section, stemp);
+               if (streq(stemp, "c")) {
+                  break;
+               } else if (tableGet(asgTable, stemp2)) {
+                  sprintf(predefstr, stemp2);
+                  break;
+               } else {
+                  printf("Please enter a valid description selection: ");
+               }
+            }
+            if (!predefstr[0]) {
+               printf("\nPlease enter your comments followed by an empty line:\n");
+               int noteSize = 0;
+               notes[section - 1][0] = '\0'; // clear the current note for this section
+               do {
+                  noteSize += strlen(fgets(stemp, 100, stdin));
+                  if (strlen(stemp) < 2) break;
+                  if (noteSize < 401) strcat(notes[section - 1], stemp);
+               } while(1);
+            } else {
+               char newLineParse[401]; // convert "\\n" to "\n"
+               int tempPointer1 = 0;
+               int tempPointer2 = 0;
+               sprintf(newLineParse, "%s", tableGet(asgTable, predefstr)); // the key for the description we want
+               while (tempPointer1 < strlen(newLineParse)) {
+                  if (newLineParse[tempPointer1] == '\\') {
+                     notes[section - 1][tempPointer2++] = newLineParse[++tempPointer1] == 'n' ? '\n' : newLineParse[tempPointer1];
+                     tempPointer1++;
+                  } else {
+                     notes[section - 1][tempPointer2++] = newLineParse[tempPointer1++];
+                  }
+               }
+               notes[section - 1][tempPointer2] = '\0';
+            }
             debugPrint("New note for section %d:\n%s\n", section, notes[section - 1]);
          } else if (streq(stemp, "-cs")) {
             debugPrint("Your grades and comments are:\n");
