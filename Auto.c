@@ -842,7 +842,10 @@ void autoGrade() {
             for (int i = 1; i <= numSections; i++) {
                sprintf(stemp, "%d", i);
                if (!listContains(responsibilityList, stemp)) continue;
-               debugPrint("Grade for %s is %s and notes are:\n%s\n", tableGet(asgTable, stemp), grade[i - 1], notes[i - 1]);
+               char stemp2[101];
+               sprintf(stemp2, "%s.maxpts", stemp);
+               debugPrint("Grade for %s is %s / %s and notes are:\n%s\n",
+                     tableGet(asgTable, stemp), grade[i - 1], tableGet(asgTable, stemp2), notes[i - 1]);
             }
          } else if (streq(stemp, "-rs")) {
             for (int i = 1; i <= numSections; i++) {
@@ -873,7 +876,6 @@ void autoGrade() {
          }
       }
       listDestroy(responsibilityList);
-      studentWrite();
       printf("\nFinished grading %s\n", listGetCur(asgList));
       if (++count == 5) {
          printf("Would you like to quit autograde? [y/<anything>]: ");
@@ -886,6 +888,7 @@ void autoGrade() {
          count = 0;
       }
    } while(autocont);
+   studentWrite();
 }
 
 /////////////////////////////////////////////////////////////////////
