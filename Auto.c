@@ -272,6 +272,7 @@ void autoShell() {
          break;
       } else if (commanded("grade")) {
          autoGrade();
+         studentRead();
       } else {
          /* listString doesn't work yet TODO
             listString(tempString, cmdList);
@@ -648,7 +649,10 @@ void autoGrade() {
             printf("Now skipping %s\n", listGetCur(asgList));
             break;
          } else if (streq(stemp, "-nr")) {
+            listDestroy(responsibilityList);
             autoConfigureResponsibilities();
+            sprintf(stemp, "Grading_%s_%s", classId, asgId);
+            responsibilityList = tableGetList(graderTable, stemp, " ");
          } else if (streq(stemp, "-cr")) {
             debugPrint("Here are the possible grading sections (that you are responsible for):"); // print out the sections and their maxpts
             for (int i = 1; i <= numSections; i++) {
@@ -869,6 +873,7 @@ void autoGrade() {
          }
       }
       listDestroy(responsibilityList);
+      studentWrite();
       printf("\nFinished grading %s\n", listGetCur(asgList));
       if (++count == 5) {
          printf("Would you like to quit autograde? [y/<anything>]: ");
