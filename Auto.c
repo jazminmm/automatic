@@ -584,27 +584,27 @@ void autoGrade() {
          }
       }
       if (!skipCurrent) { // run those executables
-         requireChangeDir(asgBinDir);
-         for (int i = 1; i <= numSections; i++) {
-            sprintf(stemp, "%d", i);
-            if (!listContains(responsibilityList, stemp)) continue;
-            sprintf(stemp, "%s_%d", asgId, i);
-            char stemp2[201];
-            FILE *exe_test = fopen(stemp, "r");
-            if (exe_test) {
-               fclose(exe_test);
-               sprintf(stemp2, "cp %s/%s %s/%s/%s", asgBinDir, stemp, asgDir, listGetCur(asgList), stemp);
-               system(stemp2);
-               requireChangeDir(asgDir);
-               requireChangeDir(listGetCur(asgList));
-               sprintf(stemp2, "./%s", stemp);
-               system(stemp2);
-               sprintf(stemp2, "rm -f %s", stemp);
-               system(stemp2);
+            for (int i = 1; i <= numSections; i++) {
+               sprintf(stemp, "%d", i);
+               if (!listContains(responsibilityList, stemp)) continue;
+               sprintf(stemp, "%s_%d", asgId, i);
+               char stemp2[201];
+               requireChangeDir(asgBinDir);
+               FILE *exe_test = fopen(stemp, "r");
+               if (exe_test) {
+                  fclose(exe_test);
+                  sprintf(stemp2, "cp %s/%s %s/%s/%s", asgBinDir, stemp, asgDir, listGetCur(asgList), stemp);
+                  system(stemp2);
+                  requireChangeDir(asgDir);
+                  requireChangeDir(listGetCur(asgList));
+                  sprintf(stemp2, "./%s", stemp);
+                  system(stemp2);
+                  sprintf(stemp2, "rm -f %s", stemp);
+                  system(stemp2);
+               }
             }
-         }
-         requireChangeDir(asgDir);
-         requireChangeDir(listGetCur(asgList));
+            requireChangeDir(asgDir);
+            requireChangeDir(listGetCur(asgList));
       }
       for(;;) {
          if (skipCurrent) {
@@ -845,12 +845,12 @@ void autoGrade() {
                debugPrint("Grade for %s is %s and notes are:\n%s\n", tableGet(asgTable, stemp), grade[i - 1], notes[i - 1]);
             }
          } else if (streq(stemp, "-rs")) {
-            requireChangeDir(asgBinDir);
             for (int i = 1; i <= numSections; i++) {
                sprintf(stemp, "%d", i);
                if (!listContains(responsibilityList, stemp)) continue;
                sprintf(stemp, "%s_%d", asgId, i);
                char stemp2[201];
+               requireChangeDir(asgBinDir);
                FILE *exe_test = fopen(stemp, "r");
                if (exe_test) {
                   fclose(exe_test);
