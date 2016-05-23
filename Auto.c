@@ -623,7 +623,7 @@ void autoGrade() {
                sprintf(stemp, "%d", i);
                if (!listContains(responsibilityList, stemp)) continue;
                sprintf(stemp, "grade.%d", i);
-               tablePut(studentTable, stemp, grade[i - 1]);
+               tablePut(studentTable, stemp, streq(grade[i - 1], "U") ? "P" : grade[i - 1]); // default to perfect scores
                sprintf(stemp, "notes.%d", i);
                char newLineParse[401]; // convert "\\n" to "\n"
                int tempPointer1 = 0;
