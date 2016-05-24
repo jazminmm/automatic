@@ -29,15 +29,18 @@ Table *tableRead(char *id) {
          char key[101] = "";
          char value[401] = "";
          int count = 0;
-         for (int i = 0; temp[i] != ':' || temp[i+1] != ' '; i++) {
+         int i;
+         for (i = 0; temp[i] != ':'; i++) {
             if (count >= strlen(temp))
                autoError("Given invalid format Table %s.autotable in tableRead()", id);
             key[i] = temp[count++];
          }
+         key[i] = '\0';
          count += 2;
-         for (int i = 0; count < strlen(temp) - 1; i++) { // We don't want the newline character
+         for (i = 0; count < strlen(temp) - 1; i++) { // We don't want the newline character
             value[i] = temp[count++];
          }
+         value[i] = '\0';
          debugPrint("  %s: %s", key, value);
          tablePut(t, key, value);
       }
