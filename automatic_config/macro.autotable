@@ -13,4 +13,5 @@ u: user
 up: user print
 ur: user reset
 uw: user write
+c: compile
 e: exit

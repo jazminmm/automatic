@@ -273,6 +273,9 @@ void autoShell() {
       } else if (commanded("grade")) {
          autoGrade();
          studentRead();
+      } else if (commanded("compile")) {
+         autoCompile();
+         studentRead();
       } else {
          /* listString doesn't work yet TODO
             listString(tempString, cmdList);
@@ -584,27 +587,27 @@ void autoGrade() {
          }
       }
       if (!skipCurrent) { // run those executables
-            for (int i = 1; i <= numSections; i++) {
-               sprintf(stemp, "%d", i);
-               if (!listContains(responsibilityList, stemp)) continue;
-               sprintf(stemp, "%s_%d", asgId, i);
-               char stemp2[201];
-               requireChangeDir(asgBinDir);
-               FILE *exe_test = fopen(stemp, "r");
-               if (exe_test) {
-                  fclose(exe_test);
-                  sprintf(stemp2, "cp %s/%s %s/%s/%s", asgBinDir, stemp, asgDir, listGetCur(asgList), stemp);
-                  system(stemp2);
-                  requireChangeDir(asgDir);
-                  requireChangeDir(listGetCur(asgList));
-                  sprintf(stemp2, "./%s", stemp);
-                  system(stemp2);
-                  sprintf(stemp2, "rm -f %s", stemp);
-                  system(stemp2);
-               }
+         for (int i = 1; i <= numSections; i++) {
+            sprintf(stemp, "%d", i);
+            if (!listContains(responsibilityList, stemp)) continue;
+            sprintf(stemp, "%s_%d", asgId, i);
+            char stemp2[201];
+            requireChangeDir(asgBinDir);
+            FILE *exe_test = fopen(stemp, "r");
+            if (exe_test) {
+               fclose(exe_test);
+               sprintf(stemp2, "cp %s/%s %s/%s/%s", asgBinDir, stemp, asgDir, listGetCur(asgList), stemp);
+               system(stemp2);
+               requireChangeDir(asgDir);
+               requireChangeDir(listGetCur(asgList));
+               sprintf(stemp2, "./%s", stemp);
+               system(stemp2);
+               sprintf(stemp2, "rm -f %s", stemp);
+               system(stemp2);
             }
-            requireChangeDir(asgDir);
-            requireChangeDir(listGetCur(asgList));
+         }
+         requireChangeDir(asgDir);
+         requireChangeDir(listGetCur(asgList));
       }
       for(;;) {
          if (skipCurrent) {
@@ -889,6 +892,120 @@ void autoGrade() {
       }
    } while(autocont);
    studentWrite();
+}
+
+void autoCompile() {
+   if (!listMoveFront(asgList)) return;
+   requireChangeDir(asgBinDir);
+   char tempstr[1024];
+   sprintf(tempstr, "%s.%s.csv", classId, asgId);
+   FILE *fullGradeSheet = fopen(tempstr, "w");
+   fprintf(fullGradeSheet, "student,%s\n", asgId);
+   sprintf(tempstr, "%s.%s.grade.txt", classId, asgId);
+   FILE *fullGradeList = fopen(tempstr, "w");
+   fprintf(fullGradeList, "%s\n", tempstr);
+   do {
+      studentRead();
+      FILE *gradeFile = fopen("grade.txt", "w");
+      fprintf(gradeFile, "%s\n", currentPath());
+      fprintf(fullGradeList, "%s\n", currentPath());
+      fprintf(gradeFile, "CLASS:\t%s\nASG:\t%s\nGRADERS:", classId, asgId);
+      fprintf(fullGradeList, "CLASS:\t%s\nASG:\t%s\nGRADERS:", classId, asgId);
+      fprintf(gradeFile, "\tIsaak Joseph Cherdak <icherdak>\n\tAugust Salay Valera <avalera>\n"); // TEMPORARY HARDCODE until more configuration exists
+      fprintf(fullGradeList, "\tIsaak Joseph Cherdak <icherdak>\n\tAugust Salay Valera <avalera>\n"); // TEMPORARY HARDCODE until more configuration exists
+      fprintf(gradeFile, "STUDENT:\t%s\n", studentId);
+      fprintf(fullGradeList, "STUDENT:\t%s\n", studentId);
+      if (0) {
+         fclose(gradeFile);
+         continue;
+      }
+      int score = 0;
+      int maxscore = 0;
+      for (int i = 1; i <= numSections; i++) { // add up score breakdown
+         char tempstr2[128];
+         sprintf(tempstr2, "grade.%d", i);
+         sprintf(tempstr, tableGet(studentTable, tempstr2));
+         if (streq(tempstr, "C")) {
+            sprintf(tempstr, "%d.charity", i);
+            if (tableGet(asgTable, tempstr)) score += tableGetInt(asgTable, tempstr); // if charity doesn't exist, give 0 pts
+         } else if (streq(tempstr, "P")) {
+            sprintf(tempstr, "%d.maxpts", i);
+            //printf("%d.maxpts = %d\n", i, tableGetInt(asgTable, tempstr));
+            score += tableGetInt(asgTable, tempstr); // maxpts for this section
+         } else {
+            score += atoi(tempstr); // we assume the grade given is valid and don't check bounds (in later versions we will)
+         }
+         sprintf(tempstr, "%d.maxpts", i);
+         maxscore += tableGetInt(asgTable, tempstr);
+      }
+      fprintf(fullGradeSheet, "%s,%d\n", studentId, score); // add to the spreadsheet
+      fprintf(gradeFile, "SCORE:\t%d / %d (%d%%)\n", score, maxscore, maxscore ? 100 * score / maxscore : 0);
+      fprintf(fullGradeList, "SCORE:\t%d / %d (%d%%)\n", score, maxscore, maxscore ? 100 * score / maxscore : 0);
+
+      fprintf(gradeFile, "\nGRADE BREAKDOWN:\n");
+      fprintf(fullGradeList, "\nGRADE BREAKDOWN:\n");
+
+      for (int i = 1; i <= numSections; i++) {
+         char tempstr2[128];
+         sprintf(tempstr2, "grade.%d", i);
+         sprintf(tempstr, tableGet(studentTable, tempstr2));
+         if (streq(tempstr, "C")) {
+            sprintf(tempstr, "%d.charity", i);
+            if (tableGet(asgTable, tempstr)) {
+               fprintf(gradeFile, "%d / ", tableGetInt(asgTable, tempstr)); // if charity doesn't exist, give 0 pts
+               fprintf(fullGradeList, "%d / ", tableGetInt(asgTable, tempstr)); // if charity doesn't exist, give 0 pts
+            } else {
+               fprintf(gradeFile, "%d / ", 0);
+               fprintf(fullGradeList, "%d / ", 0);
+            }
+         }else if (streq(tempstr, "P")) {
+            sprintf(tempstr, "%d.maxpts", i);
+            //printf("%d.maxpts = %d\n", i, tableGetInt(asgTable, tempstr));
+            fprintf(gradeFile, "%s / ", tableGet(asgTable, tempstr)); // maxpts for this section
+            fprintf(fullGradeList, "%s / ", tableGet(asgTable, tempstr)); // maxpts for this section
+         } else {
+            fprintf(gradeFile, "%s / ", tempstr); // we assume the grade given is valid and don't check bounds (in later versions we will)
+            fprintf(fullGradeList, "%s / ", tempstr); // we assume the grade given is valid and don't check bounds (in later versions we will)
+         }
+         sprintf(tempstr, "%d.maxpts", i);
+         fprintf(gradeFile, "%s | ", tableGet(asgTable, tempstr));
+         fprintf(fullGradeList, "%s | ", tableGet(asgTable, tempstr));
+
+         sprintf(tempstr, "%d", i);
+         fprintf(gradeFile, "%s\n", tableGet(asgTable, tempstr));
+         fprintf(fullGradeList, "%s\n", tableGet(asgTable, tempstr));
+      }
+      fprintf(gradeFile, "\n");
+      fprintf(fullGradeList, "\n");
+      for (int i = 1; i <= numSections; i++) {
+         sprintf(tempstr, "%d", i);
+         fprintf(gradeFile, "\nNotes for %s:\n====================\n", tableGet(asgTable, tempstr));
+         fprintf(fullGradeList, "\nNotes for %s:\n====================\n", tableGet(asgTable, tempstr));
+         sprintf(tempstr, "notes.%d", i);
+         char tempstr2[400];
+         int tempstrp = 0; // pointer to current index
+         sprintf(tempstr2, "%s", tableGet(studentTable, tempstr));
+         while (tempstrp < strlen(tempstr2)) {
+            if (tempstr2[tempstrp] == '\\') { // because we have to expand the '\n' character to "\\n"
+               fputc('\n', gradeFile);
+               fputc('\n', fullGradeList);
+               tempstrp += 2;
+            } else {
+               fputc(tempstr2[tempstrp], gradeFile);
+               fputc(tempstr2[tempstrp], fullGradeList);
+               tempstrp++;
+            }
+         }
+         fprintf(gradeFile, "\n====================\n");
+         fprintf(fullGradeList, "\n====================\n");
+      }
+
+      fclose(gradeFile);
+      fprintf(fullGradeList, "==================================================\n");
+   } while (listMoveNext(asgList));
+   listMoveFront(asgList);
+   fclose(fullGradeSheet);
+   fclose(fullGradeList);
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -1243,7 +1360,7 @@ void sendMail() {
          debugPrint("Mail Routine Complete");
          break;
       } else if (ask =='n') {
-         system("rm mailscript");
+         //system("rm mailscript");
          debugPrint("Exiting Program");
          break;
       } else if (ask == '\n') {
