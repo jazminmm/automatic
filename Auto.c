@@ -913,7 +913,7 @@ void autoCompile() {
       fprintf(fullGradeList, "CLASS:\t%s\nASG:\t%s\nGRADERS:", classId, asgId);
       fprintf(gradeFile, "\tIsaak Joseph Cherdak <icherdak>\n\tAugust Salay Valera <avalera>\n"); // TEMPORARY HARDCODE until more configuration exists
       fprintf(fullGradeList, "\tIsaak Joseph Cherdak <icherdak>\n\tAugust Salay Valera <avalera>\n"); // TEMPORARY HARDCODE until more configuration exists
-      fprintf(gradeFile, "STUDENT:\t%s\n", studentId);
+      fprintf(gradeFile, "STUDENT:\t%s <%s>\n", tableGet(studentTable, "user.name"), studentId);
       fprintf(fullGradeList, "STUDENT:\t%s\n", studentId);
       if (0) {
          fclose(gradeFile);
@@ -999,6 +999,8 @@ void autoCompile() {
          fprintf(gradeFile, "\n====================\n");
          fprintf(fullGradeList, "\n====================\n");
       }
+      fprintf(gradeFile, "\nPiazza post: https://piazza.com/class/im9z9r0bukp5kf?cid=654\n");
+      fprintf(fullGradeList, "\nPiazza post: https://piazza.com/class/im9z9r0bukp5kf?cid=654\n");
 
       fclose(gradeFile);
       fprintf(fullGradeList, "==================================================\n");
