@@ -269,7 +269,7 @@ void autoShell() {
          }
       } else if (commanded("mail")) {
          sendMail();
-         break;
+         studentRead();
       } else if (commanded("grade")) {
          autoGrade();
          studentRead();
@@ -1347,6 +1347,7 @@ void sendMail() {
    }
    fprintf(mscript, "echo \"Finished mailing all students\"");
    fclose(mscript);
+   listMoveFront(asgList);
    changeDir(asgBinDir);
    while(1) {
       autoPrint("Approximate runtime: %d minute%s %d second%s, Would you like to email all students that have been graded? <y/n> [y]",
@@ -1360,7 +1361,7 @@ void sendMail() {
          debugPrint("Mail Routine Complete");
          break;
       } else if (ask =='n') {
-         //system("rm mailscript");
+         system("rm mailscript");
          debugPrint("Exiting Program");
          break;
       } else if (ask == '\n') {
@@ -1373,7 +1374,6 @@ void sendMail() {
          printf("Invalid Command!\nPlease Enter An Appropriate Character <y/n> [y]\n");
       }
    }
-
 
    return; // the rest is old stuff
 
