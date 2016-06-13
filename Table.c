@@ -18,16 +18,16 @@ int tableMaxSize(Table *t) {
 
 Table *tableRead(char *id) {
    Table *t;
-   char temp[501] = {};
+   char temp[5001] = {};
    sprintf(temp, "%s.autotable", id);
    debugPrint("TABLE reading from <%s>", temp);
    t = tableCreate(INIT_TABLE_SIZE); // we start with a size of 2
    tableSetID(t, id);
    FILE *fp = fopen(temp, "r");
    if(fp) {
-      while(fgets(temp, 500, fp)) {
-         char key[101] = "";
-         char value[401] = "";
+      while(fgets(temp, 5000, fp)) {
+         char key[1001] = "";
+         char value[4001] = "";
          int count = 0;
          int i;
          for (i = 0; temp[i] != ':'; i++) {
@@ -55,7 +55,7 @@ void tableWrite(Table *t) {
    }
    if(streq(tableGetID(t), "")) autoError("Table with no ID passed to tableWrite()");
    int count = 0;
-   char temp[501] = {};
+   char temp[5001] = {};
    sprintf(temp, "%s.autotable", tableGetID(t));
    FILE *fp = fopen(temp, "r");
    if(fp) { // Force deletion of file
@@ -109,7 +109,7 @@ char *tableGet(Table *t, char *key) {
 
 int tableGetInt(Table *t, char *key) {
    char *value = tableGet(t, key);
-   char extest[401] = {}; // this is one way to test ifsomething is an integer apparently
+   char extest[4001] = {}; // this is one way to test ifsomething is an integer apparently
    sprintf(extest, "%d", atoi(value));
    if(!value || strcmp(extest, value)) return 0;
    return (atoi(value));
@@ -117,7 +117,7 @@ int tableGetInt(Table *t, char *key) {
 
 float tableGetFloat(Table *t, char *key) {
    char *value = tableGet(t, key);
-   char extest[401] = {}; // this is one way to test ifsomething is a float apparently
+   char extest[4001] = {}; // this is one way to test ifsomething is a float apparently
    sprintf(extest, "%f", atof(value));
    if(!value || strcmp(extest, value)) return 0.0;
    return (atof(value));
@@ -136,7 +136,7 @@ List *tableGetList(Table *t, char *key, const char *delimiters) {
       return NULL;
    }
    //int dcount = 0; // for debugging
-   char temps[501] = "";
+   char temps[5001] = "";
    int tpos = 0;
    List *l = listCreate();
    char *str = tableGet(t, key);
@@ -221,7 +221,7 @@ void tablePutList(Table *t, char *key, List *l, char *delimiter) {
    if (!t->table[hash]) { // the specified index doesn't have a hashList, make one
       t->table[hash] = hashListCreate();
    }
-   char value[listGetSize(l) * (500 + strlen(delimiter) - 1) + 1]; // numberItems(sizeof(ListItem) + delimiter size)
+   char value[listGetSize(l) * (5000 + strlen(delimiter) - 1) + 1]; // numberItems(sizeof(ListItem) + delimiter size)
    value[0] = '\0';
    if (listMoveFront(l)) {
       do {

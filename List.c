@@ -33,12 +33,12 @@ List *listCreateFromToken(char *str, const char *delimiters) {
     debugPrint("One of the arguments to listCreateFromToken() is NULL or an empty String");
     return NULL;
   }
-  char temps[501] = ""; // holds the current token
+  char temps[5001] = ""; // holds the current token
   int tpos = 0; // current position in token buffer
   List *l = listCreate();
   for (int i = 0; 1; i++) { // go to next character of string to parse
     for (int j = 0; j < strlen(delimiters); j++) { // check if character is one of the delimiters
-      if (tpos > 500) autoError("Token has surpassed capacity in listCreateFromToken()");
+      if (tpos > 5000) autoError("Token has surpassed capacity in listCreateFromToken()");
       if (i >= strlen(str)) break; // this is a valid exit condition of the loop
       if(str[i] == delimiters[j]) {
         temps[tpos] = '\0'; // string ends at a null character
@@ -123,8 +123,8 @@ void listPrepend(List *l, char *sdir) {
     l->first = temp;
   }
   temp->prev = NULL;
-  char *temps = calloc(501, sizeof(char));
-  strncpy(temps, sdir, 500);
+  char *temps = calloc(5001, sizeof(char));
+  strncpy(temps, sdir, 5000);
   temp->sdir = temps;
 }
 
@@ -143,8 +143,8 @@ void listAppend(List *l, char *sdir) {
     l->last = temp;
   }
   temp->next = NULL;
-  char *temps = calloc(501, sizeof(char));
-  strncpy(temps, sdir, 500);
+  char *temps = calloc(5001, sizeof(char));
+  strncpy(temps, sdir, 5000);
   temp->sdir = temps;
 }
 
@@ -172,8 +172,8 @@ void listInsert(List *l, char *sdir) {
   temp2->prev = temp->prev;
   temp->prev = temp2;
   temp2->next = temp;
-  char *temps = calloc(501, sizeof(char));
-  strncpy(temps, sdir, 500);
+  char *temps = calloc(5001, sizeof(char));
+  strncpy(temps, sdir, 5000);
   temp->sdir = temps;
 }
 
@@ -301,7 +301,7 @@ void listFilter(List *l, char *dir,  char *filter) {
 void listItemConcat(List *l, const char *format) {
   if(!l) autoError("NULL List passed to listItemConcat()");
   if(!format) autoError("NULL String passed to listItemConcat()");
-  char temp[501] = "";
+  char temp[5001] = "";
   int repinst = -1;
   for (int i = 0; i < strlen(format); i++)
     if(format[i] == '%' && format[i+1] == 's') {
@@ -348,11 +348,11 @@ char *listGetID(List *l) {
 List *listRead(char *id) {
   List *l = listCreate();
   listSetID(l, id);
-  char temp[501];
+  char temp[5001];
   sprintf(temp, "%s.autolist", id);
   FILE *fp = fopen(temp, "r");
   if(!fp) autoError("%s.autolist didn't exist when calling listRead()", id);
-  while(fgets(temp, 500, fp)) {
+  while(fgets(temp, 5000, fp)) {
     if (temp[strlen(temp) - 1] == '\n') temp[strlen(temp) - 1] = '\0';
     if (!strlen(temp)) continue; // get rid of newlines in strings, don't append
                                  // empty strings to the list
@@ -363,7 +363,7 @@ List *listRead(char *id) {
 }
 
 void listWrite(List *l) {
-  char temp[501];
+  char temp[5001];
   char *id = listGetID(l);
   if(!id) autoError("List with no set ID passed to listWrite()");
   sprintf(temp, "%s.autolist", id);

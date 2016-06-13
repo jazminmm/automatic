@@ -303,7 +303,7 @@ void studentRead() {
    char numcon[4] = "1"; //this part is to force that entries for all part of assignment are added
    int num = 1;
    char tempstr[50];
-   while (tableGet(asgTable, numcon)) {
+   while (0 && tableGet(asgTable, numcon)) {
       sprintf(tempstr, "grade.%s", numcon);
       if (!tableGet(studentTable, tempstr)) {
          tablePut(studentTable, tempstr, "U");
