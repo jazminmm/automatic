@@ -559,7 +559,7 @@ void autoGrade() {
          autoConfigureResponsibilities();
       }
       char grade[numSections][5];
-      char notes[numSections][401];
+      char notes[numSections][4001];
       sprintf(stemp, "Grading_%s_%s", classId, asgId);
       List *responsibilityList = tableGetList(graderTable, stemp, " ");
       int skipCurrent = 1; // whether this student was already graded
@@ -567,7 +567,7 @@ void autoGrade() {
          sprintf(stemp, "grade.%d", i);
          sprintf(grade[i - 1], "%s", tableGet(studentTable, stemp));
          sprintf(stemp, "notes.%d", i);
-         char newLineParse[401]; // convert "\\n" to "\n"
+         char newLineParse[4001]; // convert "\\n" to "\n"
          int tempPointer1 = 0;
          int tempPointer2 = 0;
          sprintf(newLineParse, "%s", tableGet(studentTable, stemp));
@@ -631,7 +631,7 @@ void autoGrade() {
                sprintf(stemp, "grade.%d", i);
                tablePut(studentTable, stemp, streq(grade[i - 1], "U") ? "P" : grade[i - 1]); // default to perfect scores
                sprintf(stemp, "notes.%d", i);
-               char newLineParse[401]; // convert "\\n" to "\n"
+               char newLineParse[4001]; // convert "\\n" to "\n"
                int tempPointer1 = 0;
                int tempPointer2 = 0;
                while (tempPointer2 < strlen(notes[i - 1])) {
@@ -783,7 +783,7 @@ void autoGrade() {
             debugPrint("Custom descriptions include:");
             for (int i = 1; i <= numDesc; i++) {
                sprintf(stemp, "%d.desc.%d", section, i);
-               char stemp2[401];
+               char stemp2[4001];
                sprintf(stemp2, "%s", tableGet(asgTable, stemp));
                debugPrint("%d:", i);
                printf("\t");
@@ -822,10 +822,10 @@ void autoGrade() {
                do {
                   noteSize += strlen(fgets(stemp, 100, stdin));
                   if (strlen(stemp) < 2) break;
-                  if (noteSize < 401) strcat(notes[section - 1], stemp);
+                  if (noteSize < 4001) strcat(notes[section - 1], stemp);
                } while(1);
             } else {
-               char newLineParse[401]; // convert "\\n" to "\n"
+               char newLineParse[4001]; // convert "\\n" to "\n"
                int tempPointer1 = 0;
                int tempPointer2 = 0;
                sprintf(newLineParse, "%s", tableGet(asgTable, predefstr)); // the key for the description we want
@@ -880,7 +880,7 @@ void autoGrade() {
       }
       listDestroy(responsibilityList);
       printf("\nFinished grading %s\n", listGetCur(asgList));
-      if (++count == 5) {
+      if (++count == 4) {
          printf("Would you like to quit autograde? [y/<anything>]: ");
          char stopcont[101] = {};
          fgets(stopcont, 100, stdin);
