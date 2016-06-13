@@ -303,7 +303,7 @@ void studentRead() {
    char numcon[4] = "1"; //this part is to force that entries for all part of assignment are added
    int num = 1;
    char tempstr[50];
-   while (0 && tableGet(asgTable, numcon)) {
+   while (tableGet(asgTable, numcon)) {
       sprintf(tempstr, "grade.%s", numcon);
       if (!tableGet(studentTable, tempstr)) {
          tablePut(studentTable, tempstr, "U");
@@ -1012,6 +1012,7 @@ void autoCompile() {
 
 /////////////////////////////////////////////////////////////////////
 
+//deprecated
 void testGrade(char *dir) {
    if (strncmp(dir, "pa2", 4)) {
       printf("This method is not yet ready\n");
