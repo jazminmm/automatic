@@ -906,6 +906,19 @@ void autoCompile() {
    fprintf(fullGradeList, "%s\n", tempstr);
    do {
       studentRead();
+      system("rm -f grade.txt");
+      int ungraded = 0; // 1 if there is an ungraded section
+      for (int i = 1; i <= numSections; i++) { // check that there are no Ungraded assignments
+         char tempstr2[128];
+         sprintf(tempstr2, "grade.%d", i);
+         sprintf(tempstr, tableGet(studentTable, tempstr2));
+         if (streq(tempstr, "U")) {
+            ungraded = 1;
+         }
+      }
+      if (ungraded) {
+         continue;
+      }
       FILE *gradeFile = fopen("grade.txt", "w");
       fprintf(gradeFile, "%s\n", currentPath());
       fprintf(fullGradeList, "%s\n", currentPath());
