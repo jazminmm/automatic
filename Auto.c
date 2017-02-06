@@ -1026,7 +1026,7 @@ void autoCompile() {
    listMoveFront(asgList);
    fclose(fullGradeSheet);
    fclose(fullGradeList);
-   if (!strlen(compile_status)) strcpy(compile_status, "Finished grading all students\n");
+   if (!strlen(compile_status)) strcat(compile_status, "Finished grading all students\n");
    else {
       strcat(compile_status, "Grading unfinished\n");
       char uncompiled_str[16];
@@ -1034,7 +1034,8 @@ void autoCompile() {
       strcat(compile_status, uncompiled_str);
       strcat(compile_status, " total remaining\n");
    }
-   printf(compile_status);
+   debugPrint("Compile Status:\n\n%s\n", compile_status);
+
 }
 
 /////////////////////////////////////////////////////////////////////
