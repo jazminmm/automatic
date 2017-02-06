@@ -904,6 +904,8 @@ void autoCompile() {
    sprintf(tempstr, "%s.%s.grade.txt", classId, asgId);
    FILE *fullGradeList = fopen(tempstr, "w");
    fprintf(fullGradeList, "%s\n", tempstr);
+   char compile_status[16384] = {}; // string informing whether grading complete
+   int not_compiled = 0; // number of grade files not compiled
    do {
       studentRead();
       system("rm -f grade.txt");
@@ -917,6 +919,9 @@ void autoCompile() {
          }
       }
       if (ungraded) {
+         not_compiled++;
+         strcat(compile_status, tableGet(studentTable, "user.name"));
+         strcat(compile_status, " not compiled\n");
          continue;
       }
       FILE *gradeFile = fopen("grade.txt", "w");
@@ -1021,6 +1026,15 @@ void autoCompile() {
    listMoveFront(asgList);
    fclose(fullGradeSheet);
    fclose(fullGradeList);
+   if (!strlen(compile_status)) strcpy(compile_status, "Finished grading all students\n");
+   else {
+      strcat(compile_status, "Grading unfinished\n");
+      char uncompiled_str[16];
+      sprintf(uncompiled_str, "%d", not_compiled);
+      strcat(compile_status, uncompiled_str);
+      strcat(compile_status, " total remaining\n");
+   }
+   printf(compile_status);
 }
 
 /////////////////////////////////////////////////////////////////////
