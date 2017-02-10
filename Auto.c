@@ -1017,8 +1017,8 @@ void autoCompile() {
          fprintf(gradeFile, "\n====================\n");
          fprintf(fullGradeList, "\n====================\n");
       }
-      fprintf(gradeFile, "\nPiazza post: https://piazza.com/class/im9z9r0bukp5kf?cid=654\n"); // hardcoded stuff, use config eventually
-      fprintf(fullGradeList, "\nPiazza post: https://piazza.com/class/im9z9r0bukp5kf?cid=654\n");
+      fprintf(gradeFile,  "\nPiazza post: https://piazza.com/class/ixpl5nsw9fnta?cid=219\n"); // hardcoded stuff, use config eventually
+      fprintf(fullGradeList,  "\nPiazza post: https://piazza.com/class/ixpl5nsw9fnta?cid=219\n"); // hardcoded stuff, use config eventually
 
       fclose(gradeFile);
       fprintf(fullGradeList, "==================================================\n");
