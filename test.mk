@@ -1,7 +1,7 @@
 # Makefile for tests
 
 test : default
-	./$(INST) pa2
+	./$(INST) pa5
 	make spotless
 
 listtest : List.o ListTest.o

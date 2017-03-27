@@ -589,7 +589,9 @@ void autoGrade() {
       if (!skipCurrent) { // run those executables
          for (int i = 1; i <= numSections; i++) {
             sprintf(stemp, "%d", i);
-            if (!listContains(responsibilityList, stemp)) continue;
+            if (!listContains(responsibilityList, stemp)) continue; // if not responsibility, don't bother
+            sprintf(stemp, "grade.%d", i);
+            if (strcmp(tableGet(studentTable, stemp), "U") != 0) continue; // if graded, don't bother
             sprintf(stemp, "%s_%d", asgId, i);
             char stemp2[201];
             requireChangeDir(asgBinDir);
@@ -853,7 +855,9 @@ void autoGrade() {
          } else if (streq(stemp, "-rs")) {
             for (int i = 1; i <= numSections; i++) {
                sprintf(stemp, "%d", i);
-               if (!listContains(responsibilityList, stemp)) continue;
+               if (!listContains(responsibilityList, stemp)) continue; // if not responsibility, don't bother
+               sprintf(stemp, "grade.%d", i);
+               if (strcmp(tableGet(studentTable, stemp), "U") != 0) continue; // if graded, don't bother
                sprintf(stemp, "%s_%d", asgId, i);
                char stemp2[201];
                requireChangeDir(asgBinDir);
@@ -1017,8 +1021,8 @@ void autoCompile() {
          fprintf(gradeFile, "\n====================\n");
          fprintf(fullGradeList, "\n====================\n");
       }
-      fprintf(gradeFile,  "\nPiazza post: https://piazza.com/class/ixpl5nsw9fnta?cid=219\n"); // hardcoded stuff, use config eventually
-      fprintf(fullGradeList,  "\nPiazza post: https://piazza.com/class/ixpl5nsw9fnta?cid=219\n"); // hardcoded stuff, use config eventually
+      //fprintf(gradeFile,  "\nPiazza post: https://piazza.com/class/ixpl5nsw9fnta?cid=524\n"); // hardcoded stuff, use config eventually
+      //fprintf(fullGradeList,  "\nPiazza post: https://piazza.com/class/ixpl5nsw9fnta?cid=524\n"); // hardcoded stuff, use config eventually
 
       fclose(gradeFile);
       fprintf(fullGradeList, "==================================================\n");
