@@ -1,7 +1,7 @@
 exe.name: automatic
-exe.dir: /afs/cats.ucsc.edu/class/cmps012a-pt.w17/bin/automatic
+exe.dir: /afs/cats.ucsc.edu/class/cmps011-pt.s17/bin/automatic
 config.id: automatic_config
 exe.id: auto
-config.dir: /afs/cats.ucsc.edu/class/cmps012a-pt.w17/bin/automatic/automatic_config
-class.id: cmps012a-pt.w17
-class.dir: /afs/cats.ucsc.edu/class/cmps012a-pt.w17/
+config.dir: /afs/cats.ucsc.edu/class/cmps011-pt.s17/bin/automatic/automatic_config
+class.id: cmps011-pt.s17
+class.dir: /afs/cats.ucsc.edu/class/cmps011-pt.s17/

@@ -849,8 +849,8 @@ void autoGrade() {
                if (!listContains(responsibilityList, stemp)) continue;
                char stemp2[101];
                sprintf(stemp2, "%s.maxpts", stemp);
-               debugPrint("Grade for %s is %s / %s and notes are:\n%s\n",
-                     tableGet(asgTable, stemp), grade[i - 1], tableGet(asgTable, stemp2), notes[i - 1]);
+               debugPrint("Section %d: Grade for %s is %s / %s and notes are:\n%s\n",
+                     i, tableGet(asgTable, stemp), grade[i - 1], tableGet(asgTable, stemp2), notes[i - 1]);
             }
          } else if (streq(stemp, "-rs")) {
             for (int i = 1; i <= numSections; i++) {
