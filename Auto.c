@@ -650,6 +650,30 @@ void autoGrade() {
             }
             printf("Now writing %s\n", listGetCur(asgList));
             break; // write to table
+         } else if (streq(stemp, "-wp")) { // only writes specified grades (U's not updated to P's)
+            for (int i = 1; i <= numSections; i++) {
+               sprintf(stemp, "%d", i);
+               if (!listContains(responsibilityList, stemp)) continue;
+               sprintf(stemp, "grade.%d", i);
+               tablePut(studentTable, stemp, grade[i - 1]); // default to perfect scores
+               sprintf(stemp, "notes.%d", i);
+               char newLineParse[4001]; // convert "\\n" to "\n"
+               int tempPointer1 = 0;
+               int tempPointer2 = 0;
+               while (tempPointer2 < strlen(notes[i - 1])) {
+                  if (notes[i - 1][tempPointer2] == '\n') {
+                     newLineParse[tempPointer1++] = '\\';
+                     newLineParse[tempPointer1++] = 'n';
+                     tempPointer2++;
+                  } else {
+                     newLineParse[tempPointer1++] = notes[i - 1][tempPointer2++];
+                  }
+               }
+               newLineParse[tempPointer1] = '\0';
+               tablePut(studentTable, stemp, newLineParse);
+            }
+            printf("Now writing %s\n", listGetCur(asgList));
+            break; // write to table
          } else if (streq(stemp, "-s")) {
             printf("Now skipping %s\n", listGetCur(asgList));
             break;
@@ -935,6 +959,8 @@ void autoCompile() {
       fprintf(fullGradeList, "CLASS:\t%s\nASG:\t%s\nGRADERS:", classId, asgId);
       fprintf(gradeFile, "\tIsaak Joseph Cherdak <icherdak>\n"); // TEMPORARY HARDCODE until more configuration exists
       fprintf(fullGradeList, "\tIsaak Joseph Cherdak <icherdak>\n"); // TEMPORARY HARDCODE until more configuration exists
+      fprintf(gradeFile, "\tAugust Salay Valera <avalera>\n"); // TEMPORARY HARDCODE until more configuration exists
+      fprintf(fullGradeList, "\tAugust Salay Valera <avalera>\n"); // TEMPORARY HARDCODE until more configuration exists
       fprintf(gradeFile, "STUDENT:\t%s <%s>\n", tableGet(studentTable, "user.name"), studentId);
       fprintf(fullGradeList, "STUDENT:\t%s\n", studentId);
       if (0) {
