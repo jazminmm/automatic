@@ -31,8 +31,10 @@ Table *tableRead(char *id) {
          int count = 0;
          int i;
          for (i = 0; temp[i] != ':'; i++) {
-            if (count >= strlen(temp))
-               autoError("Given invalid format Table %s.autotable in tableRead()", id);
+            if (count >= strlen(temp)) {
+               //autoError("Given invalid format Table %s.autotable in tableRead()", id);
+               continue; // ignore bad lines
+            }
             key[i] = temp[count++];
          }
          key[i] = '\0';
