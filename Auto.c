@@ -950,11 +950,17 @@ void autoCompile() {
   char tempstr[1024];
   sprintf(tempstr, "%s.%s.csv", classId, asgId);
   FILE *fullGradeSheet = fopen(tempstr, "w");
-  fprintf(fullGradeSheet, "student,%s\n", asgId);
+  fprintf(fullGradeSheet, "SIS Login ID,%s\n", asgId);
+  int maxscore = 0;
+  for (int i = 0; i < numSections; i++) {
+    sprintf(tempstr, "%d.maxpts", i + 1);
+    maxscore += tableGetInt(asgTable, tempstr);
+  }
+  //TODO: do we need max points possible as a row?
   sprintf(tempstr, "%s.%s.grade.txt", classId, asgId);
   FILE *fullGradeList = fopen(tempstr, "w");
   fprintf(fullGradeList, "%s\n", tempstr);
-  char compile_status[16384] = {}; // string informing whether grading complete
+  char compile_status[100000] = {}; // string informing whether grading complete
   int not_compiled = 0; // number of grade files not compiled
   do {
     studentRead();
@@ -963,7 +969,7 @@ void autoCompile() {
     char *cheatedstr = tableGet(studentTable, "cheated");
     if (cheatedstr && cheatedstr[0] == 'Y') { // give them the cheated file
       system("cp ../../bin/moss/canned_grade.txt grade.txt");
-      fprintf(fullGradeSheet, "%s,%d\n", studentId, 0); // add to the spreadsheet
+      fprintf(fullGradeSheet, "%s@ucsc.edu,%d\n", studentId, 0); // add to the spreadsheet
       continue; // they now have a "grade.txt" file
     }
 
@@ -996,7 +1002,6 @@ void autoCompile() {
       continue;
     }
     int score = 0;
-    int maxscore = 0;
     for (int i = 1; i <= numSections; i++) { // add up score breakdown
       char tempstr2[128];
       sprintf(tempstr2, "grade.%d", i);
@@ -1011,10 +1016,8 @@ void autoCompile() {
       } else {
         score += atoi(tempstr); // we assume the grade given is valid and don't check bounds (in later versions we will)
       }
-      sprintf(tempstr, "%d.maxpts", i);
-      maxscore += tableGetInt(asgTable, tempstr);
     }
-    fprintf(fullGradeSheet, "%s,%d\n", studentId, score); // add to the spreadsheet
+    fprintf(fullGradeSheet, "%s@ucsc.edu,%d\n", studentId, score); // add to the spreadsheet
     fprintf(gradeFile, "SCORE:\t%d / %d (%d%%)\n", score, maxscore, maxscore ? 100 * score / maxscore : 0);
     fprintf(fullGradeList, "SCORE:\t%d / %d (%d%%)\n", score, maxscore, maxscore ? 100 * score / maxscore : 0);
 
@@ -1075,7 +1078,7 @@ void autoCompile() {
       fprintf(gradeFile, "\n====================\n");
       fprintf(fullGradeList, "\n====================\n");
     }
-    //fprintf(gradeFile,  "\nPiazza post: https://piazza.com/class/ixpl5nsw9fnta?cid=524\n"); // hardcoded stuff, use config eventually
+    fprintf(gradeFile,  "\nPiazza post: https://piazza.com/class/j47dz6f3qffva?cid=82\n"); // hardcoded stuff, use config eventually
     //fprintf(fullGradeList,  "\nPiazza post: https://piazza.com/class/ixpl5nsw9fnta?cid=524\n"); // hardcoded stuff, use config eventually
 
     fclose(gradeFile);
