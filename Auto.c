@@ -291,7 +291,7 @@ void autoShell() {
           studentRead();
           tablePut((studentTable), "cheated", (cheated ? "Y" : "N"));
           studentWrite();
-          debugPrint("Student %s marked as %d\n", stemp2, cheated ? "Cheater" : "Not Cheater");
+          debugPrint("Student %s marked as %s\n", stemp2, cheated ? "Cheater" : "Not Cheater");
         } else {
           debugPrint("Student %s not found\n", stemp2);
         }
@@ -528,7 +528,7 @@ void autoWrite() {
   if(tempList) listDestroy(tempList);
   if(helpTable) tableDestroy(helpTable);
   if(macroTable) tableDestroy(macroTable);
-  if (asgTable) tableDestroy(asgTable);
+  if(asgTable) tableDestroy(asgTable);
   debugPrint("EXE safely exited", exeId);
 }
 
@@ -715,7 +715,7 @@ void autoGrade() {
         }
         sprintf(stemp, "Grading_%s_%s", classId, asgId);
         printf("Your responsibilities are sections:\n%s\n", tableGet(graderTable, stemp)); // print the value in the key containing all sections
-      } else if (!strncmp(stemp, "-cg", 3)) { // check if it starts with -cg
+      } else if (!strncmp(stemp, "-gs", 3) || !strncmp(stemp, "-cg", 3)) { // check if it starts with -gs or -cg
         if (!isdigit(stemp[3])) {
           printf("This is not a valid section\n");
           continue;
@@ -733,9 +733,27 @@ void autoGrade() {
           printf("This is not a valid section\n");
           continue;
         }
-        if (!listContains(responsibilityList, stemp + 3)) { // cut off the "-cg"
+        if (!listContains(responsibilityList, stemp + 3)) { // cut off the "-cs" or "-cg"
           printf("You do not have responsibility for grading section %d\n", section);
           continue;
+        }
+        if (!strncmp(stemp, "-gs", 3)) {
+          int i = section;
+          sprintf(stemp, "%s_%d", asgId, i);
+          char stemp2[201];
+          requireChangeDir(asgBinDir);
+          FILE *exe_test = fopen(stemp, "r");
+          if (exe_test) {
+            fclose(exe_test);
+            sprintf(stemp2, "cp %s/%s %s/%s/%s", asgBinDir, stemp, asgDir, listGetCur(asgList), stemp);
+            system(stemp2);
+            requireChangeDir(asgDir);
+            requireChangeDir(listGetCur(asgList));
+            sprintf(stemp2, "./%s", stemp);
+            system(stemp2);
+            sprintf(stemp2, "rm -f %s", stemp);
+            system(stemp2);
+          }
         }
         sprintf(stemp, "%d", section);
         debugPrint("Section %d: %s", section, tableGet(asgTable, stemp));
@@ -794,6 +812,83 @@ void autoGrade() {
           }
           printf("Please enter a valid score for section %d: ", section);
         }
+
+        //Enter notes after entering grade:
+
+        sprintf(stemp, "%d", section);
+        debugPrint("Section %d: %s", section, tableGet(asgTable, stemp));
+        debugPrint("\tCurrent Points: %s", grade[section - 1]);
+        sprintf(stemp, "%d.maxpts", section);
+        debugPrint("\tMax Points: %s", tableGet(asgTable, stemp));
+        debugPrint("\tNotes:\n%s\n", notes[section - 1]);
+        int numDesc = 0; // number of pre-defined descriptions for this section
+        while (1) {
+          numDesc++; // case for 1 is assumed to be covered since section.desc.1 is required for auto to run
+          sprintf(stemp, "%d.desc.%d", section, numDesc + 1);
+          if (!tableGet(asgTable, stemp)) break;
+        }
+        debugPrint("Custom descriptions include:");
+        for (int i = 1; i <= numDesc; i++) {
+          sprintf(stemp, "%d.desc.%d", section, i);
+          char stemp2[4001];
+          sprintf(stemp2, "%s", tableGet(asgTable, stemp));
+          debugPrint("%d:", i);
+          printf("\t");
+          for (int j = 0; j < strlen(stemp2); j++) {
+            if (stemp2[j] == '\\') {
+              printf("\n");
+              printf("\t");
+              j++;
+            } else {
+              printf("%c", stemp2[j]);
+            }
+          }
+          printf("\n");
+        }
+        printf("\nWould you like to enter a custom message or one of the default ones?\n");
+        printf("Please type a number for the above description you would like or 'c' for custom: ");
+        char predefstr[101] = ""; // emptry string is custom
+        while (1) {
+          fgets(stemp, 100, stdin);
+          stemp[strlen(stemp) ? strlen(stemp) - 1 : 0] = '\0';
+          char stemp2[101];
+          sprintf(stemp2, "%d.desc.%s", section, stemp);
+          if (streq(stemp, "c")) {
+            break;
+          } else if (tableGet(asgTable, stemp2)) {
+            sprintf(predefstr, stemp2);
+            break;
+          } else {
+            printf("Please enter a valid description selection: ");
+          }
+        }
+        if (!predefstr[0]) {
+          printf("\nPlease enter your comments followed by an empty line:\n");
+          int noteSize = 0;
+          notes[section - 1][0] = '\0'; // clear the current note for this section
+          do {
+            noteSize += strlen(fgets(stemp, 100, stdin));
+            if (strlen(stemp) < 2) break;
+            if (noteSize < 4001) strcat(notes[section - 1], stemp);
+          } while(1);
+        } else {
+          char newLineParse[4001]; // convert "\\n" to "\n"
+          int tempPointer1 = 0;
+          int tempPointer2 = 0;
+          sprintf(newLineParse, "%s", tableGet(asgTable, predefstr)); // the key for the description we want
+          while (tempPointer1 < strlen(newLineParse)) {
+            if (newLineParse[tempPointer1] == '\\') {
+              notes[section - 1][tempPointer2++] = newLineParse[++tempPointer1] == 'n' ? '\n' : newLineParse[tempPointer1];
+              tempPointer1++;
+            } else {
+              notes[section - 1][tempPointer2++] = newLineParse[tempPointer1++];
+            }
+          }
+          notes[section - 1][tempPointer2] = '\0';
+        }
+        debugPrint("New note for section %d:\n%s\n", section, notes[section - 1]);
+        // end entering notes after entering grade
+
       } else if (!strncmp(stemp, "-cn", 3)) {
         if (!isdigit(stemp[3])) {
           printf("This is not a valid section\n");
@@ -968,8 +1063,15 @@ void autoCompile() {
 
     char *cheatedstr = tableGet(studentTable, "cheated");
     if (cheatedstr && cheatedstr[0] == 'Y') { // give them the cheated file
-      system("cp ../../bin/moss/canned_grade.txt grade.txt");
       fprintf(fullGradeSheet, "%s@ucsc.edu,%d\n", studentId, 0); // add to the spreadsheet
+      system("cp ../../bin/moss/canned_grade.txt temp_grade.txt");
+      FILE *canned_grade = fopen("grade.txt", "w");
+      FILE *temp_grade = fopen("temp_grade.txt", "r");
+      fprintf(canned_grade, "To %s:\n", studentId);
+      while (fgets(tempstr, 1023, temp_grade)) fprintf(canned_grade, tempstr);
+      fclose(temp_grade);
+      fclose(canned_grade);
+      system("rm temp_grade.txt");
       continue; // they now have a "grade.txt" file
     }
 
@@ -994,7 +1096,9 @@ void autoCompile() {
     fprintf(gradeFile, "CLASS:\t%s\nASG:\t%s\nGRADERS:", classId, asgId);
     fprintf(fullGradeList, "CLASS:\t%s\nASG:\t%s\nGRADERS:", classId, asgId);
     fprintf(gradeFile, "\tIsaak Joseph Cherdak <icherdak>\n"); // TEMPORARY HARDCODE until more configuration exists
+    fprintf(gradeFile, "\tMia Gabrielle Altieri <mgaltier>\n"); // TEMPORARY HARDCODE until more configuration exists
     fprintf(fullGradeList, "\tIsaak Joseph Cherdak <icherdak>\n"); // TEMPORARY HARDCODE until more configuration exists
+    fprintf(fullGradeList, "\tMia Gabrielle Altieri<mgaltier>\n"); // TEMPORARY HARDCODE until more configuration exists
     fprintf(gradeFile, "STUDENT:\t%s <%s>\n", tableGet(studentTable, "user.name"), studentId);
     fprintf(fullGradeList, "STUDENT:\t%s\n", studentId);
     if (0) {
@@ -1078,7 +1182,7 @@ void autoCompile() {
       fprintf(gradeFile, "\n====================\n");
       fprintf(fullGradeList, "\n====================\n");
     }
-    fprintf(gradeFile,  "\nPiazza post: https://piazza.com/class/j47dz6f3qffva?cid=82\n"); // hardcoded stuff, use config eventually
+    fprintf(gradeFile,  "\nPiazza post: https://piazza.com/class/j83hj0f2v8x3o7?cid=356\n"); // hardcoded stuff, use config eventually
     //fprintf(fullGradeList,  "\nPiazza post: https://piazza.com/class/ixpl5nsw9fnta?cid=524\n"); // hardcoded stuff, use config eventually
 
     fclose(gradeFile);
