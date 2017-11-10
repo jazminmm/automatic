@@ -5,6 +5,8 @@
 #ifndef _AUTO_H
 #define _AUTO_H
 
+#include <time.h>
+
 #include "List.h"
 #include "Table.h"
 #include "Extra.h"
@@ -42,5 +44,7 @@ void studentWrite();
 void studentRead();
 
 void autoWrite();
+
+void autoCompile();
 
 #endif //_AUTO_H

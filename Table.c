@@ -248,6 +248,7 @@ void tableClear(Table *t) {
    for (int i = 0; i < t->size; i++) {
       if(!t->table[i]) continue;
       count += hashListDestroy(t->table[i]);
+      t->table[i] = NULL;
       if(count == t->size) break;
    }
    for (int i = 0; i < tableMaxSize(t); i++) t->table[i] = NULL;
@@ -288,6 +289,7 @@ int hashListDestroy(HashList *l) {
       count++;
    }
    hashListRemove(l, temp->key);
+   free(l);
    return ++count;
 }
 

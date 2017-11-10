@@ -17,7 +17,7 @@
   debugPrint("ASG <%s>", asgId);\
   debugPrint("PATH <%s>", currentPath());\
   if (asgList) { \
-    studentWrite();\
+    studentWrite(0);\
     autoWrite();\
   } else {\
     autoWarn("Stack trace didn't happen because list was not ready");\
@@ -206,7 +206,8 @@ void autoShell() {
     sprintf(temps, "LastDir_%s_%s", classId, asgId);
     // set startDir to the last directory, try to seek to that directory, if
     // it doesn't: warn grader to that effect
-    if (startDir = tableGet(graderTable, temps)) if (!listSeek(asgList, startDir)) autoWarn("The directory you were last at no longer exists");
+    if ((startDir = tableGet(graderTable, temps)) && !listSeek(asgList, startDir))
+      autoWarn("The directory you were last at no longer exists");
   }
   studentRead();
   while(true) {
@@ -214,18 +215,14 @@ void autoShell() {
     if (cmd[0] == '\0') {
       // do nothing
     } else if(commanded("exit")) {
-      autoPrint("INFO would you like to save your changes to <%s>", studentId);
-      if(autoAsk("y")) studentWrite();
       break;
     } else if (commanded("first")) {
-      studentWrite();
       if (!listMoveFront(asgList)) {
         autoError("Couldn't move to first student <%s>",
             currentDir());
       }
       studentRead();
     } else if(commanded("next")) {
-      studentWrite();
       if(! listMoveNext(asgList)) {
         listMoveFront(asgList);
         autoWarn("INFO end of list, moving to first student <%s>",
@@ -233,7 +230,6 @@ void autoShell() {
       }
       studentRead();
     } else if(commanded("prev")) {
-      studentWrite();
       if(! listMovePrev(asgList)) {
         listMoveBack(asgList);
         autoWarn("INFO beginning of list, moving to last student <%s>",
@@ -241,7 +237,6 @@ void autoShell() {
       }
       studentRead();
     } else if (commanded("last")) {
-      studentWrite();
       if (!listMoveBack(asgList)) {
         autoError("Couldn't move to last student <%s>",
             currentDir());
@@ -259,9 +254,6 @@ void autoShell() {
         if(commanded("print")) {
           tablePrint(studentTable, "%s: %s\n");
         } else if(commanded("reset")) {
-          studentRead();
-        } else if(commanded("write")) {
-          studentWrite();
           studentRead();
         }
       } else {
@@ -290,7 +282,7 @@ void autoShell() {
           listSeek(asgList, stemp2);
           studentRead();
           tablePut((studentTable), "cheated", (cheated ? "Y" : "N"));
-          studentWrite();
+          studentWrite(0);
           debugPrint("Student %s marked as %s\n", stemp2, cheated ? "Cheater" : "Not Cheater");
         } else {
           debugPrint("Student %s not found\n", stemp2);
@@ -315,6 +307,60 @@ void studentRead() {
   requireChangeDir(asgBinDir);
   assertChangeDir("student");
   sprintf(tempString, "student_%s", studentId);
+  if (studentTable) tableDestroy(studentTable);
+  studentTable = tableRead(tempString);
+  tablePut(studentTable, keyId, studentId);
+  realName(tempString, studentId);
+  tablePut(studentTable, keyName, tempString);
+  requireChangeDir(asgDir);
+  requireChangeDir(listGetCur(asgList));
+
+  autoPrint("STUDENT <%s> (%s) loaded", studentId,
+      tableGet(studentTable, keyName));
+}
+
+char *getTimeStr(char *str) {
+  time_t rawtime;
+  struct tm * timeinfo;
+
+  time ( &rawtime );
+  timeinfo = localtime ( &rawtime );
+  sprintf(str, "%d%d%d", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec); //hhmmss
+  return str;
+}
+
+// safeToGrade tells you if it's safe to grade someone based off current value of studentId
+// return 1 if safe or 0 otherwise
+//
+// something is safe to grade if a file hasn't been written for grading or readtime=writetime
+// or it's been more than 10 minutes since being read
+int safeToGrade() {
+  char timestr[20];
+  getTimeStr(timestr);
+  char *readStr = tableGet(studentTable, "graded.lastRead");
+  char *writeStr = tableGet(studentTable, "graded.lastWritten");
+  if (!readStr) return 1; // safe if never read for grading
+  if (!strcmp(readStr,writeStr)) return 1; // written at same time to show that it's been graded before and is safe now
+  int readSec = 3600 * (10 * readStr[0] + readStr[1]) +
+    60 * (10 * readStr[2] + readStr[3]) + 10 * readStr[4] + readStr[5];
+  int curSec = 3600 * (10 * timestr[0] + timestr[1]) +
+    60 * (10 * timestr[2] + timestr[3]) + 10 * timestr[4] + timestr[5];
+  if (readStr[0] == 2 && timestr[0] == 0) { // overflow occured
+    curSec += 24 * 3600; // only curtime could possibly overflow
+  }
+  if (curSec - readSec > 10 * 60) return 1; // if the difference is more than 10 minutes, it's safe
+  return 0;
+}
+
+// special student read when grading
+void studentReadGrading() {
+  requireChangeDir(asgDir);
+  requireChangeDir(listGetCur(asgList));
+  strcpy(studentId, currentDir());
+  requireChangeDir(asgBinDir);
+  assertChangeDir("student");
+  sprintf(tempString, "student_%s", studentId);
+  if (studentTable) tableDestroy(studentTable);
   studentTable = tableRead(tempString);
   tablePut(studentTable, keyId, studentId);
   realName(tempString, studentId);
@@ -325,30 +371,49 @@ void studentRead() {
   char numcon[4] = "1"; //this part is to force that entries for all part of assignment are added
   int num = 1;
   char tempstr[50];
+  int stuff_added = 0;
   while (tableGet(asgTable, numcon)) {
     sprintf(tempstr, "grade.%s", numcon);
     if (!tableGet(studentTable, tempstr)) {
       tablePut(studentTable, tempstr, "U");
       autoWarn("Adding default grade entry for section %d of %s to %s", num, asgId, studentId);
+      stuff_added = 1;
     }
     sprintf(tempstr, "notes.%s", numcon);
     if (!tableGet(studentTable, tempstr)) {
       tablePut(studentTable, tempstr, "");
       autoWarn("Adding default notes entry for section %d of %s to %s", num, asgId, studentId);
+      stuff_added = 1;
     }
     num++;
     sprintf(numcon, "%d", num);
   }
+  if (stuff_added) {
+    studentWrite(0);
+    studentReadGrading(); // need to reconstruct stuff after writing
+    return; // don't perform the function again
+  }
+  if (!safeToGrade()) {
+    autoWarn("Not yet safe to grade %s\n", studentId);
+    return;
+  }
+  tablePut(studentTable, "graded.lastRead", getTimeStr(tempstr));
 
-  autoPrint("STUDENT <%s> (%s) loaded", studentId,
+  autoPrint("STUDENT <%s> (%s) loaded for grading", studentId,
       tableGet(studentTable, keyName));
 }
 
-void studentWrite() {
+void studentWrite(int changetime) {
   requireChangeDir(asgBinDir);
   assertChangeDir("student");
-  //if(!studentTable) debugPrint("STUDENT <%s> did not have a table.", studentId);
+  if (changetime) {
+    char tempstr[20];
+    getTimeStr(tempstr);
+    tablePut(studentTable, "graded.lastRead", tempstr); // overwrite both
+    tablePut(studentTable, "graded.lastWritten", tempstr);
+  }
   if(studentTable) tableWrite(studentTable);
+  studentTable = NULL;
   requireChangeDir(asgDir);
   debugPrint("STUDENT <%s> closed", studentId);
   strcpy(studentId, "null");
@@ -546,7 +611,7 @@ void autoGrade() {
     if (count < 0) {
       count = 0;
     } else {
-      studentWrite();
+      studentWrite(1);
       if(! listMoveNext(asgList)) {
         listMoveFront(asgList);
         autoWarn("INFO end of list, moving to first student <%s>",
@@ -573,7 +638,7 @@ void autoGrade() {
     asgId, asgBinDir);
     }
     */
-    studentRead();
+    studentReadGrading();
     sprintf(stemp, "Grading_%s_%s", classId, asgId);
     if (!tableGet(graderTable, stemp)) {
       printf("\n");
@@ -1036,7 +1101,7 @@ void autoGrade() {
       count = 0;
     }
   } while(autocont);
-  studentWrite();
+  studentWrite(1);
 }
 
 void autoCompile() {
