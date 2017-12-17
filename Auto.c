@@ -325,7 +325,7 @@ char *getTimeStr(char *str) {
 
   time ( &rawtime );
   timeinfo = localtime ( &rawtime );
-  sprintf(str, "%d%d%d", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec); //hhmmss
+  sprintf(str, "%02d%02d%02d", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec); //hhmmss
   return str;
 }
 
@@ -340,7 +340,7 @@ int safeToGrade() {
   char *readStr = tableGet(studentTable, "graded.lastRead");
   char *writeStr = tableGet(studentTable, "graded.lastWritten");
   if (!readStr) return 1; // safe if never read for grading
-  if (!strcmp(readStr,writeStr)) return 1; // written at same time to show that it's been graded before and is safe now
+  if (writeStr && !strcmp(readStr, writeStr)) return 1; // written at same time to show that it's been graded before and is safe now
   int readSec = 3600 * (10 * readStr[0] + readStr[1]) +
     60 * (10 * readStr[2] + readStr[3]) + 10 * readStr[4] + readStr[5];
   int curSec = 3600 * (10 * timestr[0] + timestr[1]) +
@@ -353,7 +353,7 @@ int safeToGrade() {
 }
 
 // special student read when grading
-void studentReadGrading() {
+int studentReadGrading() {
   requireChangeDir(asgDir);
   requireChangeDir(listGetCur(asgList));
   strcpy(studentId, currentDir());
@@ -390,17 +390,19 @@ void studentReadGrading() {
   }
   if (stuff_added) {
     studentWrite(0);
-    studentReadGrading(); // need to reconstruct stuff after writing
-    return; // don't perform the function again
+    return studentReadGrading(); // need to reconstruct stuff after writing
   }
   if (!safeToGrade()) {
     autoWarn("Not yet safe to grade %s\n", studentId);
-    return;
+    return 0;
   }
   tablePut(studentTable, "graded.lastRead", getTimeStr(tempstr));
+  studentWrite(0);
+  studentRead();
 
   autoPrint("STUDENT <%s> (%s) loaded for grading", studentId,
       tableGet(studentTable, keyName));
+  return 1;
 }
 
 void studentWrite(int changetime) {
@@ -607,6 +609,7 @@ void autoGrade() {
     }
   }
   int count = -1;
+  int wasSafeToGrade = 1;
   do {
     if (count < 0) {
       count = 0;
@@ -638,7 +641,8 @@ void autoGrade() {
     asgId, asgBinDir);
     }
     */
-    studentReadGrading();
+    wasSafeToGrade = studentReadGrading();
+    if (!wasSafeToGrade) continue;
     sprintf(stemp, "Grading_%s_%s", classId, asgId);
     if (!tableGet(graderTable, stemp)) {
       printf("\n");
@@ -1101,7 +1105,7 @@ void autoGrade() {
       count = 0;
     }
   } while(autocont);
-  studentWrite(1);
+  if (wasSafeToGrade) studentWrite(1);
 }
 
 void autoCompile() {
@@ -1144,8 +1148,9 @@ void autoCompile() {
     for (int i = 1; i <= numSections; i++) { // check that there are no Ungraded assignments
       char tempstr2[128];
       sprintf(tempstr2, "grade.%d", i);
-      sprintf(tempstr, tableGet(studentTable, tempstr2));
-      if (streq(tempstr, "U")) {
+      char *tableret = tableGet(studentTable, tempstr2);
+      sprintf(tempstr, tableret);
+      if (tableret == NULL || streq(tempstr, "U")) {
         ungraded = 1;
       }
     }
@@ -1162,8 +1167,10 @@ void autoCompile() {
     fprintf(fullGradeList, "CLASS:\t%s\nASG:\t%s\nGRADERS:", classId, asgId);
     fprintf(gradeFile, "\tIsaak Joseph Cherdak <icherdak>\n"); // TEMPORARY HARDCODE until more configuration exists
     fprintf(gradeFile, "\tMia Gabrielle Altieri <mgaltier>\n"); // TEMPORARY HARDCODE until more configuration exists
+    fprintf(gradeFile, "\tAlexander Zuo-Tao Lue <alue>\n"); // TEMPORARY HARDCODE until more configuration exists
     fprintf(fullGradeList, "\tIsaak Joseph Cherdak <icherdak>\n"); // TEMPORARY HARDCODE until more configuration exists
     fprintf(fullGradeList, "\tMia Gabrielle Altieri<mgaltier>\n"); // TEMPORARY HARDCODE until more configuration exists
+    fprintf(fullGradeList, "\tAlexander Zuo-Tao Lue <alue>\n"); // TEMPORARY HARDCODE until more configuration exists
     fprintf(gradeFile, "STUDENT:\t%s <%s>\n", tableGet(studentTable, "user.name"), studentId);
     fprintf(fullGradeList, "STUDENT:\t%s\n", studentId);
     if (0) {
@@ -1232,7 +1239,7 @@ void autoCompile() {
       sprintf(tempstr, "notes.%d", i);
       char tempstr2[400];
       int tempstrp = 0; // pointer to current index
-      sprintf(tempstr2, "%s", tableGet(studentTable, tempstr));
+      sprintf(tempstr2, "%s", tableGet(studentTable, tempstr) );
       while (tempstrp < strlen(tempstr2)) {
         if (tempstr2[tempstrp] == '\\') { // because we have to expand the '\n' character to "\\n"
           fputc('\n', gradeFile);
@@ -1247,7 +1254,7 @@ void autoCompile() {
       fprintf(gradeFile, "\n====================\n");
       fprintf(fullGradeList, "\n====================\n");
     }
-    fprintf(gradeFile,  "\nPiazza post: https://piazza.com/class/j83hj0f2v8x3o7?cid=356\n"); // hardcoded stuff, use config eventually
+    fprintf(gradeFile,  "\nPlease check piazza for details on grading and a rubric\n"); // hardcoded stuff, use config eventually
     //fprintf(fullGradeList,  "\nPiazza post: https://piazza.com/class/ixpl5nsw9fnta?cid=524\n"); // hardcoded stuff, use config eventually
 
     fclose(gradeFile);
