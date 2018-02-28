@@ -60,6 +60,7 @@ char configDir[STRLEN];
 Table* asgTable; // Assignment config
 List* asgList; // List of all students
 List* asgDupList;
+List *gradersList;
 
 char* keyName = "user.name";
 char* keyId = "user.id";
@@ -171,6 +172,7 @@ int main(int argc, char **argv) {
   // Get asglist
   changeDir(asgDir);
   asgList = dirList(asgId);
+  gradersList = NULL;
   if(listGetSize(asgList) <= 0)
     autoError("ASG <%s> has no submissions", asgId);
 
@@ -266,7 +268,12 @@ void autoShell() {
       autoGrade();
       studentRead();
     } else if (commanded("compile")) {
+      assertChangeDir(configDir);
+      assertChangeDir("grader");
+      gradersList = dirList("graders");
       autoCompile();
+      listDestroy(gradersList);
+      gradersList = NULL;
       studentRead();
     } else if (commanded("cheaters")) {
       printf("List Cheaters by cruzid one by one (end with empty line):\n");
@@ -575,6 +582,16 @@ void autoConfigureResponsibilities() {
   else printf("No Responsibilities\n");
   sprintf(stemp, "Grading_%s_%s", classId, asgId);
   tablePutList(graderTable, stemp, responsibilityList, " ");
+
+  autoPrint("Would you like to also be marked as a grader for this assignment? y/n [y]\n");
+  fgets(stemp, 100, stdin);
+  int graderMarked = !(stemp[0] == 'n' || stemp[0] == 'N');
+  sprintf(stemp, "GraderFor_%s_%s", classId, asgId);
+  if (graderMarked) {
+    tablePut(graderTable, stemp, "Y");
+  } else {
+    tablePut(graderTable, stemp, "N");
+  }
 }
 
 // Auto writeback on exit
@@ -1126,6 +1143,34 @@ void autoCompile() {
   fprintf(fullGradeList, "%s\n", tempstr);
   char compile_status[100000] = {}; // string informing whether grading complete
   int not_compiled = 0; // number of grade files not compiled
+
+  char gradersString[1000];
+  gradersString[0] = '\0';
+  // Get string for current graders
+  assertChangeDir(configDir);
+  assertChangeDir("grader");
+  if (!gradersList) {
+    autoWarn("Can't construct list of graders, can't compile\n");
+    return;
+  }
+  for (listMoveFront(gradersList); listGetCur(gradersList); listMoveNext(gradersList)) {
+    sprintf(tempstr, "%s", listGetCur(gradersList));
+    int cutOff = strlen(tempstr) - 1;
+    while (cutOff >= 0) {
+      if (tempstr[cutOff] == '.') break;
+      cutOff--;
+    }
+    tempstr[cutOff] = '\0';
+    Table *tempGraderTable = tableRead(tempstr);
+    sprintf(tempstr, "GraderFor_%s_%s", classId, asgId);
+    char *str = tableGet(tempGraderTable, tempstr);
+    if (str && str[0] == 'Y') {
+      sprintf(tempstr, "\t%s <%s>\n", tableGet(tempGraderTable, "user.name"), tableGet(tempGraderTable, "user.id"));
+      strcat(gradersString, tempstr);
+    }
+    tableDestroy(tempGraderTable);
+  }
+
   do {
     studentRead();
     system("rm -f grade.txt");
@@ -1134,8 +1179,15 @@ void autoCompile() {
     if (cheatedstr && cheatedstr[0] == 'Y') { // give them the cheated file
       fprintf(fullGradeSheet, "%s@ucsc.edu,%d\n", studentId, 0); // add to the spreadsheet
       system("cp ../../bin/moss/canned_grade.txt temp_grade.txt");
-      FILE *canned_grade = fopen("grade.txt", "w");
       FILE *temp_grade = fopen("temp_grade.txt", "r");
+      if (!temp_grade) {
+        autoWarn("Can't create cheater grade for %s: moss/canned_grade.txt doesn't exist\n", studentId);
+        not_compiled++;
+        strcat(compile_status, tableGet(studentTable, "user.name"));
+        strcat(compile_status, " not compiled (no canned-grade found)\n");
+        continue;
+      }
+      FILE *canned_grade = fopen("grade.txt", "w");
       fprintf(canned_grade, "To %s:\n", studentId);
       while (fgets(tempstr, 1023, temp_grade)) fprintf(canned_grade, tempstr);
       fclose(temp_grade);
@@ -1165,12 +1217,10 @@ void autoCompile() {
     fprintf(fullGradeList, "%s\n", currentPath());
     fprintf(gradeFile, "CLASS:\t%s\nASG:\t%s\nGRADERS:", classId, asgId);
     fprintf(fullGradeList, "CLASS:\t%s\nASG:\t%s\nGRADERS:", classId, asgId);
-    fprintf(gradeFile, "\tIsaak Joseph Cherdak <icherdak>\n"); // TEMPORARY HARDCODE until more configuration exists
-    fprintf(gradeFile, "\tMia Gabrielle Altieri <mgaltier>\n"); // TEMPORARY HARDCODE until more configuration exists
-    fprintf(gradeFile, "\tAlexander Zuo-Tao Lue <alue>\n"); // TEMPORARY HARDCODE until more configuration exists
-    fprintf(fullGradeList, "\tIsaak Joseph Cherdak <icherdak>\n"); // TEMPORARY HARDCODE until more configuration exists
-    fprintf(fullGradeList, "\tMia Gabrielle Altieri<mgaltier>\n"); // TEMPORARY HARDCODE until more configuration exists
-    fprintf(fullGradeList, "\tAlexander Zuo-Tao Lue <alue>\n"); // TEMPORARY HARDCODE until more configuration exists
+    //fprintf(gradeFile, "\tIsaak Joseph Cherdak <icherdak>\n"); // TEMPORARY HARDCODE until more configuration exists
+    //fprintf(fullGradeList, "\tIsaak Joseph Cherdak <icherdak>\n"); // TEMPORARY HARDCODE until more configuration exists
+    fprintf(gradeFile, gradersString);
+    fprintf(fullGradeList, gradersString);
     fprintf(gradeFile, "STUDENT:\t%s <%s>\n", tableGet(studentTable, "user.name"), studentId);
     fprintf(fullGradeList, "STUDENT:\t%s\n", studentId);
     if (0) {
@@ -1255,7 +1305,6 @@ void autoCompile() {
       fprintf(fullGradeList, "\n====================\n");
     }
     fprintf(gradeFile,  "\nPlease check piazza for details on grading and a rubric\n"); // hardcoded stuff, use config eventually
-    //fprintf(fullGradeList,  "\nPiazza post: https://piazza.com/class/ixpl5nsw9fnta?cid=524\n"); // hardcoded stuff, use config eventually
 
     fclose(gradeFile);
     fprintf(fullGradeList, "==================================================\n");

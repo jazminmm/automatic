@@ -18,10 +18,12 @@ List *listCreate() {
 //d is the struct dirent and ndir is the number of items in the struct
 List *listCreateFromDirent(struct dirent **d, int ndir) {
   List *l = listCreate();
-  for (int i = 0; i < ndir; i++) if(strncmp(".", d[i]->d_name, 2) && strncmp("..", d[i]->d_name, 3)) { // don't include ".", and ".." directories
-    if(chdir(d[i]->d_name) == 0) {
-      chdir("..");
-      listAppend(l, d[i]->d_name);
+  for (int i = 0; i < ndir; i++) {
+    if(strncmp(".", d[i]->d_name, 2) && strncmp("..", d[i]->d_name, 3)) { // don't include ".", and ".." directories
+      //if(chdir(d[i]->d_name) == 0) {
+        //chdir("..");
+        listAppend(l, d[i]->d_name);
+      //}
     }
   }
   return l;
@@ -332,7 +334,9 @@ List *dirList(char *id) {
   int ndir = scandir(".", &fileList, NULL, alphasort);
   List *l = listCreateFromDirent(fileList, ndir);
   listSetID(l, id);
-  for (int i = 0; i < ndir; i++) free (fileList[i]);
+  for (int i = 0; i < ndir; i++) {
+    free (fileList[i]);
+  }
   free (fileList);
   return l;
 }

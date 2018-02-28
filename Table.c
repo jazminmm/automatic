@@ -47,6 +47,8 @@ Table *tableRead(char *id) {
          tablePut(t, key, value);
       }
       fclose(fp);
+   } else {
+     autoWarn("Empty Table created because %s doesn't exist\n", temp);
    }
    return t;
 }
