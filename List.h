@@ -26,7 +26,7 @@ typedef struct List {
 List *listCreate();
 
 // create a list from a dirent struct (not including ".", and "..")
-List *listCreateFromDirent(struct dirent **d, int ndir);
+List *listCreateFromDirent(struct dirent **d, int ndir, int mustFolder);
 
 // Returns a list of Strings delimited by delimiters or NULL if either argument is NULL or an empty String
 List *listCreateFromToken(char *str, const char *delimiters);
@@ -60,7 +60,7 @@ void listItemConcat(List *l, const char *format);
 
 // returns a list of directories based off listCreateFromDirent and the current directory
 // and also set id of list to id
-List *dirList(char *id);
+List *dirList(char *id, int mustFolder);
 
 // sets the id of l to be id
 void listSetID(List *l, char *id);

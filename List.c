@@ -16,14 +16,16 @@ List *listCreate() {
 }
 
 //d is the struct dirent and ndir is the number of items in the struct
-List *listCreateFromDirent(struct dirent **d, int ndir) {
+List *listCreateFromDirent(struct dirent **d, int ndir, int mustFolder) {
   List *l = listCreate();
   for (int i = 0; i < ndir; i++) {
     if(strncmp(".", d[i]->d_name, 2) && strncmp("..", d[i]->d_name, 3)) { // don't include ".", and ".." directories
-      //if(chdir(d[i]->d_name) == 0) {
-        //chdir("..");
+      if(mustFolder && chdir(d[i]->d_name) == 0) {
+        chdir("..");
         listAppend(l, d[i]->d_name);
-      //}
+      } else if (!mustFolder) {
+        listAppend(l, d[i]->d_name);
+      }
     }
   }
   return l;
@@ -329,10 +331,10 @@ void listItemConcat(List *l, const char *format) {
   }
 }
 
-List *dirList(char *id) {
+List *dirList(char *id, int mustFolder) {
   struct dirent **fileList = NULL;
   int ndir = scandir(".", &fileList, NULL, alphasort);
-  List *l = listCreateFromDirent(fileList, ndir);
+  List *l = listCreateFromDirent(fileList, ndir, mustFolder);
   listSetID(l, id);
   for (int i = 0; i < ndir; i++) {
     free (fileList[i]);

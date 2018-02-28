@@ -171,7 +171,7 @@ int main(int argc, char **argv) {
 
   // Get asglist
   changeDir(asgDir);
-  asgList = dirList(asgId);
+  asgList = dirList(asgId, 1); // must be folders
   gradersList = NULL;
   if(listGetSize(asgList) <= 0)
     autoError("ASG <%s> has no submissions", asgId);
@@ -270,7 +270,7 @@ void autoShell() {
     } else if (commanded("compile")) {
       assertChangeDir(configDir);
       assertChangeDir("grader");
-      gradersList = dirList("graders");
+      gradersList = dirList("graders", 0); // consider all files
       autoCompile();
       listDestroy(gradersList);
       gradersList = NULL;
@@ -1223,10 +1223,6 @@ void autoCompile() {
     fprintf(fullGradeList, gradersString);
     fprintf(gradeFile, "STUDENT:\t%s <%s>\n", tableGet(studentTable, "user.name"), studentId);
     fprintf(fullGradeList, "STUDENT:\t%s\n", studentId);
-    if (0) {
-      fclose(gradeFile);
-      continue;
-    }
     int score = 0;
     for (int i = 1; i <= numSections; i++) { // add up score breakdown
       char tempstr2[128];
